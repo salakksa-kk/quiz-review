@@ -1,0 +1,2926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="I/O Psych Study" />
+  <title>Multiple Choice PWA — I/O Psychology</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .option-btn {
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .option-btn:not(:disabled):active {
+      transform: scale(0.99);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.22s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200">
+          <i class="ph-bold ph-graduation-cap text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-base sm:text-lg leading-tight">Multiple Choice PWA</h1>
+          <p class="text-xs text-slate-500 font-medium">I/O Psychology Study Companion</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- PWA Setup Guide Modal Trigger -->
+        <button id="btnOpenGuide" onclick="toggleGuideModal(true)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors">
+          <i class="ph-bold ph-device-mobile text-sm"></i>
+          <span>PWA Guide</span>
+        </button>
+        <!-- Quit Round Button (Shown only during active quiz) -->
+        <button id="btnHeaderHome" onclick="returnHome()" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+          <i class="ph-bold ph-house text-sm"></i>
+          <span>Home</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col">
+
+    <!-- ==================== HOME VIEW ==================== -->
+    <section id="viewHome" class="space-y-6 animate-fade-in">
+      <!-- Hero Banner -->
+      <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-2xl p-6 sm:p-8 text-white shadow-lg shadow-indigo-900/10 relative overflow-hidden">
+        <div class="relative z-10">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 backdrop-blur-sm text-indigo-100 mb-3">
+            <i class="ph-fill ph-Stack text-sm"></i>
+            Chapters 1 – 11 Built-In
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Master All 165 Questions</h2>
+          <p class="text-indigo-100 text-sm sm:text-base mt-2 max-w-xl leading-relaxed">
+            Questions are mutually exclusive between the Question Bank and Review Bank. Every question in the Question Bank is shown once before a new cycle begins.
+          </p>
+        </div>
+        <div class="mt-6 pt-5 border-t border-white/15 grid grid-cols-3 gap-3 sm:gap-4 text-center relative z-10">
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+            <p class="text-xs text-indigo-200 font-medium">Question Bank (Unseen)</p>
+            <p id="statUnseenCount" class="text-2xl sm:text-3xl font-extrabold mt-0.5">165</p>
+          </div>
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+            <p class="text-xs text-indigo-200 font-medium">Completed in Cycle</p>
+            <p id="statMutedCount" class="text-2xl sm:text-3xl font-extrabold mt-0.5">0</p>
+          </div>
+          <div class="bg-amber-400/20 border border-amber-300/30 backdrop-blur-sm rounded-xl p-3">
+            <p class="text-xs text-amber-200 font-medium">Review Bank</p>
+            <p id="statReviewCount" class="text-2xl sm:text-3xl font-extrabold text-amber-300 mt-0.5">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cycle Progress Indicator -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
+          <span class="flex items-center gap-1.5">
+            <i class="ph-bold ph-arrows-clockwise text-indigo-600 text-sm"></i>
+            Current Question Bank Cycle Progress
+          </span>
+          <span id="cycleProgressLabel">0 / 165 seen</span>
+        </div>
+        <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+          <div id="cycleProgressBar" class="h-full bg-indigo-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <p id="cycleStatusNote" class="text-xs text-slate-500 mt-2">
+          Correctly answered questions in "Start New" are muted until all questions in the Question Bank have been shown.
+        </p>
+      </div>
+
+      <!-- Mode Selection Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Start New Card -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:border-indigo-300 transition-all flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4">
+              <i class="ph-duotone ph-sparkle text-2xl"></i>
+            </div>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-bold text-slate-900">Start New</h3>
+              <span id="badgeStartNewAvail" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700">165 in bank</span>
+            </div>
+            <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+              Draws up to 10 random questions from the Question Bank. Wrong answers move automatically to the Review Bank, or you can manually click <strong>"Add to Bank"</strong> after a correct answer.
+            </p>
+          </div>
+          <button id="btnStartNew" onclick="startRound('new')" class="mt-6 w-full py-3.5 px-4 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 shadow-sm shadow-indigo-200 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <span>Start New Round (10 Qs)</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Review Mode Card -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:border-amber-300 transition-all flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+              <i class="ph-duotone ph-bookmarks text-2xl"></i>
+            </div>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-bold text-slate-900">Review</h3>
+              <span id="badgeReviewAvail" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700">0 in review</span>
+            </div>
+            <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+              Draws random questions from your Review Bank. Answer correctly to remove the question from Review and return it to the main Question Bank for future cycles.
+            </p>
+          </div>
+          <button id="btnStartReview" onclick="startRound('review')" class="mt-6 w-full py-3.5 px-4 rounded-xl font-bold text-sm text-white bg-amber-600 hover:bg-amber-700 active:bg-amber-800 shadow-sm shadow-amber-200 flex items-center justify-center gap-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+            <span id="btnStartReviewLabel">Review Bank is Empty</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chapter Breakdown Accordion -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <button onclick="toggleChapterBreakdown()" class="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors">
+          <div class="flex items-center gap-2.5">
+            <i class="ph-bold ph-books text-indigo-600 text-lg"></i>
+            <span class="font-bold text-sm text-slate-800">View All 11 Chapters & Bank Distribution</span>
+          </div>
+          <i id="iconChapterToggle" class="ph-bold ph-caret-down text-slate-400 transition-transform"></i>
+        </button>
+        <div id="chapterBreakdownPanel" class="hidden border-t border-slate-100 divide-y divide-slate-100 text-sm">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== QUIZ VIEW ==================== -->
+    <section id="viewQuiz" class="hidden flex-1 flex flex-col justify-between animate-fade-in">
+      <div class="space-y-5">
+        <!-- Round Progress Header -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span id="quizModeBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700">
+                Start New
+              </span>
+              <span id="quizCycleAlert" class="hidden text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                New Cycle Started!
+              </span>
+            </div>
+            <div class="text-xs font-bold text-slate-600">
+              Question <span id="quizStepCurrent" class="text-slate-900">1</span> of <span id="quizStepTotal">10</span>
+            </div>
+          </div>
+          <!-- Progress bar -->
+          <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div id="quizRoundBar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 10%"></div>
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200 shadow-sm space-y-5">
+          <!-- Chapter Number & Title Badge -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 font-bold text-xs uppercase tracking-wider" id="qChapterNum">
+                Chapter 1
+              </span>
+              <span class="text-xs sm:text-sm font-semibold text-indigo-700" id="qChapterTitle">
+                I/O Psychology: Then and Now
+              </span>
+            </div>
+            <span class="text-xs font-medium text-slate-400" id="qOriginalNum">Question 1</span>
+          </div>
+
+          <!-- Question Text -->
+          <h2 id="qPromptText" class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+            Question text goes here...
+          </h2>
+
+          <!-- Options List -->
+          <div id="qOptionsContainer" class="space-y-3 pt-1">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Immediate Feedback Banner (Hidden until option selected) -->
+          <div id="qFeedbackBanner" class="hidden rounded-xl p-4 border animate-fade-in">
+            <div class="flex items-start gap-3">
+              <div id="qFeedbackIcon" class="mt-0.5 text-xl shrink-0"></div>
+              <div class="flex-1 text-sm">
+                <p id="qFeedbackTitle" class="font-bold"></p>
+                <p id="qFeedbackSub" class="mt-1 text-xs sm:text-sm leading-relaxed"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Action Bar (Shown once question is answered) -->
+      <div id="qActionBar" class="hidden mt-6 bg-white rounded-2xl p-4 border border-slate-200 shadow-lg sticky bottom-4 z-20 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <!-- Status / Add to Bank Button -->
+          <div id="qBankActionSlot" class="flex-1 flex items-center">
+            <!-- Populated dynamically based on mode & correctness -->
+          </div>
+
+          <!-- Next Button -->
+          <button id="btnNextQuestion" onclick="handleNextQuestion()" class="py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 shadow-sm shadow-indigo-200 flex items-center justify-center gap-2 transition-colors shrink-0">
+            <span id="btnNextLabel">Next</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ROUND SUMMARY VIEW ==================== -->
+    <section id="viewSummary" class="hidden space-y-6 animate-fade-in">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm text-center space-y-6">
+        <div id="summaryBadgeIcon" class="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-4xl bg-indigo-50 text-indigo-600">
+          <i class="ph-duotone ph-trophy"></i>
+        </div>
+
+        <div>
+          <span id="summaryModeLabel" class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-slate-100 text-slate-700">
+            Round Complete
+          </span>
+          <h2 class="text-4xl sm:text-5xl font-extrabold text-slate-900 mt-3" id="summaryScorePercent">80%</h2>
+          <p class="text-sm sm:text-base text-slate-600 font-medium mt-1" id="summaryScoreFraction">
+            You answered 8 out of 10 questions correctly
+          </p>
+          <p id="summaryEarlyEndNote" class="hidden text-xs font-semibold text-amber-700 bg-amber-50 max-w-md mx-auto mt-3 py-2 px-3 rounded-lg border border-amber-200">
+            The Review Bank ran out of questions, so the round concluded early!
+          </p>
+        </div>
+
+        <!-- Round Bank Movement Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-lg mx-auto text-left">
+          <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80">
+            <p class="text-xs text-slate-500 font-medium">Question Bank (Unseen)</p>
+            <p id="sumStatUnseen" class="text-xl font-bold text-slate-900 mt-0.5">0</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80">
+            <p class="text-xs text-slate-500 font-medium">Completed in Cycle</p>
+            <p id="sumStatMuted" class="text-xl font-bold text-slate-900 mt-0.5">0</p>
+          </div>
+          <div class="bg-amber-50/70 rounded-xl p-3.5 border border-amber-200/80">
+            <p class="text-xs text-amber-800 font-medium">Review Bank Total</p>
+            <p id="sumStatReview" class="text-xl font-bold text-amber-700 mt-0.5">0</p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <button onclick="returnHome()" class="w-full sm:w-auto py-3.5 px-6 rounded-xl font-bold text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+            <i class="ph-bold ph-house"></i>
+            <span>Back to Home</span>
+          </button>
+          <button id="btnSummaryPlayAgain" onclick="replaySameMode()" class="w-full sm:w-auto py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-sm shadow-indigo-200">
+            <i class="ph-bold ph-arrows-clockwise"></i>
+            <span id="btnSummaryPlayAgainLabel">Start Another Round</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Round Question Breakdown -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+          <i class="ph-bold ph-list-checks text-indigo-600"></i>
+          Round Question Breakdown
+        </h3>
+        <div id="summaryHistoryList" class="divide-y divide-slate-100">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== EXECUTION & PWA GUIDE MODAL ==================== -->
+  <div id="modalGuide" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-fade-in">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2">
+          <i class="ph-bold ph-rocket-launch text-indigo-600 text-xl"></i>
+          <h3 class="font-bold text-slate-900">Steps to Execute & Install Your Multiple Choice PWA</h3>
+        </div>
+        <button onclick="toggleGuideModal(false)" class="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto space-y-5 text-sm text-slate-700 leading-relaxed">
+        <div>
+          <h4 class="font-bold text-slate-900 text-base mb-1">1. Run Immediately on Desktop or Mobile</h4>
+          <p>All <strong>165 questions and answers across Chapters 1 to 11</strong> are pre-compiled and embedded directly inside this single <code>index.html</code> file. Your progress (`unseenBankIds`, `mutedBankIds`, and `reviewBankIds`) is saved automatically in your device's <code>localStorage</code>.</p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-900 text-base mb-1">2. Local Execution (Desktop)</h4>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Save this file as <code>index.html</code> in a folder on your computer.</li>
+            <li>You can double-click <code>index.html</code> to open it in any browser, or serve it locally for full PWA installation using VS Code Live Server or Python: <code>python3 -m http.server 8000</code> and visiting <code>http://localhost:8000</code>.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-900 text-base mb-1">3. Free Hosting for Mobile Offline PWA (GitHub Pages / Netlify / Vercel)</h4>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>Netlify Drop (Fastest - 30 seconds):</strong> Go to <code>app.netlify.com/drop</code> and drag-and-drop the folder containing <code>index.html</code>. It gives you an instant <code>https://</code> link.</li>
+            <li><strong>GitHub Pages:</strong> Create a repository, upload <code>index.html</code>, and enable GitHub Pages in Settings &rarr; Pages.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-900 text-base mb-1">4. Installing on Mobile (iOS & Android)</h4>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>iPhone / iPad (Safari):</strong> Open your hosted URL in Safari, tap the <strong>Share</strong> button at the bottom, and tap <strong>"Add to Home Screen"</strong>.</li>
+            <li><strong>Android (Chrome):</strong> Open your hosted URL in Chrome, tap the three-dot menu, and tap <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</li>
+          </ul>
+        </div>
+
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-xs text-indigo-900 space-y-1">
+          <p class="font-bold">Bank State Verification:</p>
+          <p>&bull; A question never exists simultaneously in the Question Bank and Review Bank.</p>
+          <p>&bull; Correct answers in <strong>Start New</strong> are muted until all Question Bank questions are seen, or moved to Review if you click <strong>Add to Bank</strong>.</p>
+          <p>&bull; Correct answers in <strong>Review</strong> are removed from the Review Bank and returned to the main Question Bank for future cycles.</p>
+        </div>
+      </div>
+      <div class="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex justify-end">
+        <button onclick="toggleGuideModal(false)" class="px-5 py-2 rounded-xl font-bold text-xs bg-indigo-600 text-white hover:bg-indigo-700">
+          Got It
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== APPLICATION SCRIPT ==================== -->
+  <script>
+    /********************************************************************
+     * 1. RAW EMBEDDED QUESTION BANK & ANSWER KEY (165 QUESTIONS, CH 1-11)
+     ********************************************************************/
+    const RAW_QUESTION_BANK = String.raw`
+CHAPTER 1 I/O Psychology: Then and Now
+Question 1
+The use of contract workers and freelancers to fulfill roles traditionally held by full-time employees is called:
+  gig economy. 
+  machine learning. 
+  downsizing. 
+  global competition. 
+ 
+Question 2
+_____ are skills, behaviors, and capabilities that allow employees to perform specific functions.
+  Assessments 
+  Competencies 
+  Tasks 
+  Classifications 
+ 
+Question 3
+True or false. I/O psychologists ONLY specify in research, not practice.
+  True 
+  False 
+ 
+Question 4
+0.07 / 0.07 pts
+The science/practitioner model maintains that training must be focused on both:
+
+  theory and application. 
+  procedures and interventions. 
+  management and guidelines. 
+  research and education. 
+ 
+Question 5
+0.07 / 0.07 pts
+Industrial/organizational (I/O) psychology is the application of psychological _____ and _____ to the workplace.
+
+  employers; employees 
+  structure; organization 
+  principles; theories 
+  motivation; leadership 
+ 
+Question 6
+0.07 / 0.07 pts
+Which of these is NOT being used to help address the scientist/practitioner gap?
+
+  open-access journals 
+  social media 
+  referrals 
+  social networking 
+ 
+Question 7
+0.07 / 0.07 pts
+True or false. Experts in organizational development (OD) analyze organizational structures, cultures, and climates and develop interventions.
+
+  True 
+  False 
+ 
+Question 8
+0.07 / 0.07 pts
+The process by which artificial intelligence uses algorithms, pattern recognition, and feedback to learn tasks and behaviors is called:
+
+  automation of jobs. 
+  gig economy. 
+  machine learning. 
+  subcontracting. 
+ 
+Question 9
+0.07 / 0.07 pts
+True or false. I/O psychology is not used to help laid off workers become competitive for other jobs.
+
+  True 
+  False 
+ 
+Question 10
+0.07 / 0.07 pts
+Which is an example of an I/O psychologist’s job title?
+
+  Director of Operations 
+  Director of Finance 
+  Talent manager 
+  Vice President of Engineering 
+ 
+Question 11
+0.07 / 0.07 pts
+Which of these is NOT an area where I/O psychologists work?
+
+  performance management 
+  training and development 
+  organizational development 
+  ergonomics 
+ 
+Question 12
+0.07 / 0.07 pts
+Those I/O psychologists who do not work in academic settings might devote the majority of their time to applying psychology to:
+
+  social work. 
+  government and private industry. 
+  engineering. 
+  market studies. 
+ 
+Question 13
+0.07 / 0.07 pts
+The chapter notes that women like Lillian Gilbreth and Marion Bills contributed significantly to I/O psychology through industry rather than academia in the early 20th century. This historical pattern reflects a broader challenge that I/O psychology continues to address today, which is:
+
+  The shortage of qualified doctoral candidates in graduate programs 
+  Increasing diversity and inclusion within the field itself 
+  The lack of practical applications for psychological research 
+  Limited funding for military research and development 
+ 
+Question 14
+0.07 / 0.07 pts
+The chapter identifies the renewed attention to research methods in I/O psychology as being driven by advances in AI and machine learning. Why are these technological developments particularly significant for the field?
+
+  They replace the need for traditional statistical analysis in I/O research 
+  They have led to swift and dramatic changes in the workplace and are integral to measurement and prediction in hiring and selection decisions 
+  They eliminate bias in employment testing and discrimination cases 
+  They reduce the time required to train I/O psychologists in doctoral programs 
+ 
+Question 15
+0.07 / 0.07 pts
+According to the chapter, the fact that recent SIOP dissertation awards have been given for research on artificial intelligence-powered personality assessment and psychological barriers to worker upward mobility demonstrates that:
+
+  Competencies in I/O psychology can be applied to emerging and evolving workplace challenges 
+  All I/O psychologists must specialize in artificial intelligence research 
+  Dissertations are the only way to develop competencies in graduate training 
+  Traditional competencies are no longer relevant to modern I/O psychology 
+
+CHAPTER 2 Research Methods
+Question 1
+0.07 / 0.07 pts
+The goal of science that involves the accurate portrayal of a phenomenon is known as:
+
+  control. 
+  description. 
+  explanation. 
+  prediction. 
+ 
+Question 2
+0.07 / 0.07 pts
+A good scientific theory should be:
+
+  limited to describing past observations. 
+  impossible to disconfirm. 
+  based entirely on intuition. 
+  testable. 
+ 
+Question 3
+0.07 / 0.07 pts
+When researchers move back and forth between observations and theory, the scientific process typically combines:
+
+  inductive and deductive reasoning. 
+  experimental and archival reasoning. 
+  descriptive and correlational reasoning. 
+  predictive and reductive reasoning. 
+ 
+Question 4
+0.07 / 0.07 pts
+“Predictors,” “precursors,” and “antecedents” are terms commonly used to describe _____ variables.
+
+  criterion 
+  dependent 
+  independent 
+  extraneous 
+ 
+Question 5
+0.07 / 0.07 pts
+A researcher manipulates the amount of feedback employees receive and then measures their subsequent job performance. In this study, the amount of feedback is the:
+
+  independent variable. 
+  dependent variable. 
+  criterion variable. 
+  extraneous variable. 
+ 
+Question 6
+0.07 / 0.07 pts
+A researcher studies whether lighting affects task performance. One group works in dim light and another in bright light, but the dim-light group is accidentally given more time to complete the task. The additional time is a(n):
+
+  independent variable. 
+  extraneous variable. 
+  dependent variable. 
+  criterion variable. 
+ 
+Question 7
+0.07 / 0.07 pts
+Internal validity refers primarily to the extent to which researchers can:
+
+  generalize findings to other people and settings. 
+  draw causal inferences about relationships among variables. 
+  obtain the same scores when a test is administered twice. 
+  ensure that study participants represent the population. 
+ 
+Question 8
+0.07 / 0.07 pts
+Laboratory experiments are typically:
+
+  high in internal validity and relatively lower in external validity. 
+  low in internal validity and high in external validity. 
+  conducted without manipulation of variables. 
+  conducted without random assignment. 
+ 
+Question 9
+0.07 / 0.07 pts
+A research design that involves manipulation of a variable, but does not include random assignment, is called a:
+
+  case study. 
+  laboratory experiment. 
+  naturalistic observation. 
+  quasi-experiment. 
+ 
+Question 10
+0.07 / 0.07 pts
+A researcher uses an existing organizational database containing employees’ training records and performance scores. This is an example of:
+
+  archival research. 
+  laboratory experiment. 
+  quasi-experiment. 
+  naturalistic observation. 
+ 
+Question 11
+0.06 / 0.06 pts
+If employees who score highest on a test at Time 1 also tend to score highest when given the same test at Time 2, the measure demonstrates:
+
+  content validity. 
+  test–retest reliability. 
+  interrater reliability. 
+  internal consistency. 
+ 
+Question 12
+0.06 / 0.06 pts
+When several supervisors independently rate the same employee and their ratings show strong agreement, this provides evidence of:
+
+  interrater reliability. 
+  internal consistency. 
+  predictive validity. 
+  test–retest reliability. 
+ 
+Question 13
+0.06 / 0.06 pts
+The extent to which a test adequately represents the domain or quality it is intended to assess is called:
+
+  concurrent validity. 
+  test–retest reliability. 
+  content validity. 
+  interrater reliability. 
+ 
+Question 14
+0.06 / 0.06 pts
+An organization gives applicants a selection test and later examines whether their test scores predict subsequent job performance. This provides evidence of:
+
+  predictive validity. 
+  concurrent validity. 
+  interrater reliability. 
+  internal consistency. 
+ 
+Question 15
+0.06 / 0.06 pts
+A strong positive correlation between employee motivation and job satisfaction would indicate that:
+
+  higher motivation tends to be associated with lower satisfaction. 
+  higher motivation causes higher satisfaction. 
+  motivation and satisfaction are unrelated. 
+  higher motivation tends to be associated with higher satisfaction. 
+
+CHAPTER 3 Job Analysis
+Question 1
+0.07 / 0.07 pts
+A company systematically identifies a position’s major duties and then determines the knowledge, skills, abilities, and other characteristics needed to perform those duties successfully. What process is the company conducting?
+
+  Job analysis 
+  Workforce planning 
+  Job evaluation 
+  Performance management 
+ 
+Question 2
+0.07 / 0.07 pts
+An organization wants a worker-oriented job analysis tool that is more specific than very broad worker-trait measures, while still allowing comparisons across different jobs. Which approach best fits that goal?
+
+  Task Inventory Approach 
+  Position Analysis Questionnaire (PAQ) 
+  Functional Job Analysis (FJA) 
+  Common-Metric Questionnaire (CMQ) 
+ 
+Question 3
+0.07 / 0.07 pts
+A job analyst wants a highly structured method for documenting both what workers do and how they perform those activities. Which technique would be most appropriate?
+
+  Competency modeling 
+  Functional Job Analysis 
+  Job Element Method 
+  Position Analysis Questionnaire 
+ 
+Question 4
+0.07 / 0.07 pts
+Compared to task-oriented techniques, _____ focus less on the specific tasks done on a job and more on the human characteristics that contribute to successful job performance.
+
+  subject matter experts 
+  worker-oriented techniques 
+  human resource directors 
+  task inventories 
+ 
+Question 5
+0.07 / 0.07 pts
+Two employees hold the same job. One is highly organized and performs exceptionally well; the other has developed a very different way of doing the work. During job analysis, what should the analyst focus on?
+
+  The requirements of the job itself and not personality 
+  The employee behaviors preferred by the supervisor 
+  The work style of the highest-performing employee 
+  The personality characteristics of both employees 
+ 
+Question 6
+0.07 / 0.07 pts
+A hospital wants to identify the specific duties performed by emergency department nurses, including activities such as administering medications, documenting care, and coordinating with physicians. Which job-analysis orientation is most directly focused on this information?
+
+  Task-oriented 
+  Competency-oriented 
+  Worker-oriented 
+  Person-oriented 
+ 
+Question 7
+0.07 / 0.07 pts
+A job analyst is studying a highly technical position that she has never performed herself. Who would be particularly valuable in helping her determine whether the identified tasks and requirements accurately represent the job?
+
+  An applicant for the position 
+  A human resources generalist with more experience 
+  An employee from another department 
+  A subject matter expert with substantial knowledge of the job 
+ 
+Question 8
+0.07 / 0.07 pts
+An analyst using the Position Analysis Questionnaire (PAQ) would examine dimensions such as information input, work output, and job context. Which additional type of information would be least consistent with the PAQ approach?
+
+  The socioeconomic background of the employee 
+  Relationships with coworkers 
+  Physical and environmental job conditions 
+  Mental processes used in the job 
+ 
+Question 9
+0.07 / 0.07 pts
+An organization wants to describe jobs in terms of broader capabilities such as leadership, adaptability, and collaboration so that those characteristics can be used across selection and placement decisions. Which approach most closely fits this goal?
+
+  Task inventory analysis 
+  Competency modeling 
+  Functional Job Analysis 
+  Job evaluation 
+ 
+Question 10
+0.07 / 0.07 pts
+True or false. The Task Inventory Approach focuses on extremely specific tasks conducted on the job, making it very difficult to uncover any similarities across jobs.
+
+  False 
+  True 
+ 
+Question 11
+0.06 / 0.06 pts
+After completing a job analysis, an organization produces a document identifying the knowledge, skills, abilities, and other characteristics required for successful performance. What has the organization created?
+
+  A job evaluation 
+  A performance criterion 
+  A task inventory 
+  A job specification 
+ 
+Question 12
+0.06 / 0.06 pts
+Two jobs contribute equivalent value to an organization but historically have been paid very differently. Which concept of job analysis does this violate?
+
+  Comparable worth 
+  Pay-for-performance 
+  Job classification 
+  Criterion development 
+ 
+Question 13
+0.06 / 0.06 pts
+When an organization evaluates jobs for compensation purposes, it may compare them on characteristics such as skill, responsibility, effort, or working conditions. These characteristics are examples of:
+
+  Point systems 
+  Task statements 
+  Compensable factors 
+  Job evaluations 
+ 
+Question 14
+0.06 / 0.06 pts
+What are some of the primary purposes of job analysis?
+
+  Increasing employee salaries, reducing turnover, and improving morale 
+  Measuring employee satisfaction, conducting exit interviews, and planning company events 
+  Developing marketing strategies, setting sales goals, and managing budgets 
+  Selection, performance appraisal, training, and compensation 
+ 
+Question 15
+0.06 / 0.06 pts
+The Job Element Method identifies worker characteristics believed to contribute to successful performance. What is an important challenge when using this approach?
+
+  It is designed primarily for comparing jobs across different organizations. 
+  It focuses too heavily on specific job tasks and ignores worker characteristics. 
+  It can be difficult to show that the identified worker characteristics are directly related to specific job tasks 
+  It requires employees to complete a lengthy questionnaire before a job can be analyzed. 
+
+CHAPTER 4 Criterion Measurement
+Question 1
+0.07 / 0.07 pts
+The difficulty of identifying one perfect measure that captures every important aspect of job performance is known as:
+
+  the criterion problem 
+  criterion reliability 
+  performance appraisal 
+  criterion sensitivity 
+ 
+Question 2
+0.07 / 0.07 pts
+The complete theoretical set of behaviors representing successful performance on a job is called the:
+
+  actual criterion 
+  objective criterion 
+  ultimate criterion 
+  composite criterion 
+ 
+Question 3
+0.07 / 0.07 pts
+Because organizations cannot measure every aspect of job performance perfectly, they rely on practical measures such as ratings, productivity, or customer feedback. These measures represent the:
+
+  actual criterion 
+  ultimate criterion 
+  predictor 
+  contextual criterion 
+ 
+Question 4
+0.07 / 0.07 pts
+The extent to which an actual performance measure reflects the performance behaviors that truly matter is called:
+
+  sensitivity 
+  reliability 
+  relevance 
+  practicality 
+ 
+Question 5
+0.07 / 0.07 pts
+A customer-service representative is evaluated only on the number of calls completed, even though accurately resolving customers' problems is also an important part of the job. This performance measure demonstrates:
+
+  criterion contamination 
+  criterion deficiency 
+  criterion reliability 
+  dynamic criteria 
+ 
+Question 6
+0.07 / 0.07 pts
+A university evaluates professors partly on the quality of classroom technology, even though professors have no control over whether the equipment works properly. This is an example of:
+
+  criterion sensitivity 
+  criterion deficiency 
+  criterion contamination 
+  criterion reliability 
+ 
+Question 7
+0.07 / 0.07 pts
+If a performance measure produces inconsistent results when employee performance itself has not changed, the measure has a problem with:
+
+  reliability 
+  fairness 
+  relevance 
+  practicality 
+ 
+Question 8
+0.07 / 0.07 pts
+A performance measure gives almost every employee the same rating even though employees differ substantially in effectiveness. The measure is lacking:
+
+  practicality 
+  fairness 
+  sensitivity 
+  relevance 
+ 
+Question 9
+0.07 / 0.07 pts
+A performance measure is accurate and relevant, but managers rarely use it because it takes several hours to complete. The measure is lacking:
+
+  reliability 
+  practicality 
+  sensitivity 
+  fairness 
+ 
+Question 10
+0.07 / 0.07 pts
+An organization combines productivity, teamwork, quality, and customer satisfaction into one overall performance score. This overall score is a:
+
+  dynamic criterion 
+  subjective criterion 
+  composite criterion 
+  criterion deficiency 
+ 
+Question 11
+0.06 / 0.06 pts
+A hospital decides that quality of patient care should count more heavily than administrative paperwork when calculating nurses' overall performance scores. This is an example of:
+
+  equally weighting criteria 
+  unequally weighting criteria 
+  using only objective criteria 
+  measuring criterion deficiency 
+ 
+Question 12
+0.06 / 0.06 pts
+An employee's performance changes substantially as the employee gains experience and spends more time in the job. This illustrates the idea of:
+
+  objective criteria 
+  criterion contamination 
+  dynamic criteria 
+  criterion sensitivity 
+ 
+Question 13
+0.06 / 0.06 pts
+Two sales representatives have similar ability, but one works in a territory with much greater customer demand. If the organization evaluates them only on total sales, what is a major limitation of this objective performance measure?
+
+  Situational factors outside the employee's control can influence the measure. 
+  Objective performance measures cannot be expressed numerically. 
+  Objective criteria are based entirely on supervisor judgments. 
+  Objective criteria can only be used for managerial jobs. 
+ 
+Question 14
+0.06 / 0.06 pts
+Which statement best distinguishes task performance from contextual performance?
+
+  Task performance contributes to the technical core of the organization, while contextual performance supports the broader social and psychological environment. 
+  Task performance is always measured objectively, while contextual performance is always measured subjectively. 
+  Contextual performance is required in every job, while task performance is usually voluntary. 
+  Contextual performance varies more across jobs than task performance does. 
+ 
+Question 15
+0.06 / 0.06 pts
+An employee voluntarily helps coworkers, supports the organization, and takes on extra responsibilities. These behaviors are examples of:
+
+  criterion performance 
+  counterproductive work behavior 
+  contextual performance 
+  objective performance 
+
+CHAPTER 5 Performance Management and Feedback
+Question 1
+0.07 / 0.07 pts
+According to the chapter, performance management (PM) is most accurately described as:
+
+  An annual review process conducted by HR to document employee performance for legal purposes 
+  A system of individual performance improvement that typically includes continuous coaching and feedback, performance appraisal, goal setting, and developmental planning 
+  A formal evaluation method designed solely to make promotion and termination decisions 
+  A technology-based system that automatically tracks employee productivity through wearable devices 
+ 
+Question 2
+0.07 / 0.07 pts
+Which of the following best explains why Feedback Intervention Theory (FIT) argues that some feedback actually decreases performance?
+
+  Feedback is provided too frequently, causing employee fatigue 
+  Feedback directed at the person (abilities, character) rather than the task distracts individuals and pulls cognitive resources away from task performance 
+  Employees with low feedback orientation are inherently resistant to all forms of feedback 
+  Feedback environments with low credibility sources are ineffective regardless of content quality 
+ 
+Question 3
+0.07 / 0.07 pts
+In the context of performance appraisal, "true halo" differs from traditional halo error in that:
+
+  True halo only occurs when raters have positive interpersonal relationships with ratees 
+  True halo reflects accurate intercorrelations among performance dimensions, whereas traditional halo represents rating error 
+  True halo is impossible to measure and therefore should be ignored in appraisal systems 
+  True halo only applies to graphic rating scales, not BARS or other formats 
+ 
+Question 4
+0.07 / 0.07 pts
+Which type of rater training was specifically designed to enhance raters' observational and categorization skills by establishing a common frame of reference for performance levels?
+
+  Rater Error Training (RET) 
+  Behavioral Observation Training (BOT) 
+  Frame-of-Reference (FOR) training 
+  Cognitive Bias Mitigation Training (CBMT) 
+ 
+Question 5
+0.07 / 0.07 pts
+A manager rates all of their direct reports with a mean of 4.2 on a 5-point scale, while the organizational average across all managers is 2.8. Based on this pattern, which rating error is most likely occurring?
+
+  Central tendency error 
+  Severity error 
+  Leniency error 
+  Recency error 
+ 
+Question 6
+0.07 / 0.07 pts
+Research by Kluger and DeNisi (1996) on feedback interventions found that:
+
+  Feedback universally improves performance with a strong positive correlation (r = .89) 
+  Over one-third of studies showed negative effects of feedback, challenging the assumption that feedback is always beneficial 
+  Feedback is most effective when delivered annually rather than continuously 
+  Feedback focused on personal traits is more motivating than task-focused feedback 
+ 
+Question 7
+0.07 / 0.07 pts
+The Dunning-Kruger effect helps explain why some employees:
+
+  Seek more feedback when they receive positive appraisals 
+  Are surprised or defensive when receiving feedback, despite being low performers who lack accurate self-awareness 
+  Perform better under forced distribution ranking systems 
+  Prefer technology-driven performance monitoring over manager feedback 
+ 
+Question 8
+0.07 / 0.07 pts
+According to research on remote work and performance appraisal, which of the following is a key challenge managers face?
+
+  Remote workers universally show declining performance, requiring stricter monitoring 
+  Managers have greater direct observation opportunities, reducing reliance on indirect performance information 
+  Managers tend to downplay indirect performance information that is more frequent in remote settings, despite having both direct and indirect data available 
+  Remote work eliminates the need for performance feedback conversations 
+ 
+Question 9
+0.07 / 0.07 pts
+Which of the following best describes the relationship between leader-member exchange (LMX) and performance appraisal accuracy?
+
+  LMX has no measurable impact on performance ratings or employee satisfaction 
+  High-quality LMX relationships lead to more lenient ratings regardless of actual performance 
+  A positive LMX relationship leads to favorable ratings when there is also frequent communication; ratings are less favorable even with positive LMX when communication is infrequent 
+  LMX is only relevant in hierarchical organizations, not in team-based structures 
+ 
+Question 10
+0.07 / 0.07 pts
+Frame-of-Reference (FOR) training aims to calibrate raters so that:
+
+  All raters use identical rating scales with no variation in interpretation 
+  A score of 5 from one rater means the same as a score of 5 from any other rater, creating consistency in performance standards across evaluators 
+  Raters eliminate all correlation between performance dimensions 
+  Raters prioritize leniency to improve employee morale and retention 
+ 
+Question 11
+0.06 / 0.06 pts
+Research on participation in the appraisal process found that allowing employees to participate is associated with all of the following EXCEPT:
+
+  Greater satisfaction with the appraisal system 
+  Higher perception of fairness in the appraisal 
+  Ensure accuracy of performance ratings regardless of rater training 
+  Greater motivation to improve based on the appraisal feedback 
+ 
+Question 12
+0.06 / 0.06 pts
+According to the chapter, which characteristic was found to be MORE important than the actual design of the PM process in determining employees' reactions to appraisal?
+
+  The rating format used (BARS vs. graphic scales) 
+  The frequency of performance reviews 
+  Trust in the supervisor 
+  The technology platform used to deliver feedback 
+ 
+Question 13
+0.06 / 0.06 pts
+When examining over 300 court appeals decisions on performance appraisal discrimination cases (Werner & Bolino, 1997), judgments were more likely to favor the organization (defendant) when which of the following were present?
+
+  Rating format was BARS rather than graphic rating scales 
+  A job analysis was used, written instructions were provided, employees could review appraisals, multiple raters agreed, and rater training was conducted 
+  Performance appraisals were conducted annually rather than continuously 
+  Forced distribution ranking systems were used to differentiate among employees 
+ 
+Question 14
+0.06 / 0.06 pts
+Research has demonstrated that feedback focused on abilities (e.g., "You are naturally talented") is more effective than feedback focused on effort and hard work because it enhances employee confidence.
+
+  True 
+  False 
+ 
+Question 15
+0.06 / 0.06 pts
+According to the chapter's discussion of performance management trends, most I/O practitioners and researchers agree that eliminating performance appraisal entirely is both realistic and beneficial for organizations and employees.
+
+  True 
+  False 
+
+CHAPTER 6 Predictors
+Question 1
+0.07 / 0.07 pts
+One of the benefits of computer adaptive testing is that:
+
+  the test requires applicants to demonstrate job-related computer skills 
+  the test gives every applicant the same questions in the same sequence to improve reliability 
+  the test speeds assessment by measuring how many easy questions an applicant can complete within a short time 
+  the test adjusts the difficulty according to the test taker’s responses, which allows efficient estimation of ability level 
+ 
+Question 2
+0.07 / 0.07 pts
+An organization needs to assess several hundred applicants for the same position. Which is a primary advantage of administering a group test rather than individual tests?
+
+  Group tests allow organizations to efficiently assess many applicants at lower cost. 
+  Group tests provide more detailed observations of each applicant's behavior. 
+  Group tests generally provide more reliable estimates of general ability. 
+  Group tests eliminate structural differences in applicant testing environments. 
+ 
+Question 3
+0.07 / 0.07 pts
+Calvin is applying for a warehouse position and must demonstrate that he can safely and correctly operate a forklift. Which testing format is being used?
+
+  power test 
+  speed test 
+  paper-and-pencil test 
+  performance test 
+ 
+Question 4
+0.07 / 0.07 pts
+A validity coefficient indicates:
+
+  the strength of the relationship between a predictor and a criterion 
+  the extent to which applicants receive consistent scores across repeated administrations 
+  the extent to which a test can be administered to many applicants at once 
+  the percentage of applicants who successfully complete a selection test 
+ 
+Question 5
+0.07 / 0.07 pts
+Aakil takes a test in which he compares two lists of words and numbers and identifies instances where the pairs do not match. Aakil is taking a test of:
+
+  spatial ability 
+  clerical ability 
+  general cognitive ability 
+  mechanical ability 
+ 
+Question 6
+0.07 / 0.07 pts
+An applicant completes a test requiring rapid and precise coordination of hand movements while manipulating small objects. Which ability is primarily being assessed?
+
+  psychomotor ability 
+  spatial ability 
+  clerical ability 
+  mechanical ability 
+ 
+Question 7
+0.07 / 0.07 pts
+Which personality characteristics have received substantial research attention as predictors of job performance?
+
+  conscientiousness and emotional stability 
+  agreeableness and openness 
+  extraversion and agreeableness 
+  openness and extraversion 
+ 
+Question 8
+0.07 / 0.07 pts
+During recruitment, an organization provides applicants with information about both the positive and negative aspects of a position, including opportunities for advancement, demanding schedules, and routine responsibilities. This approach is known as:
+
+  a structured interview 
+  a realistic job preview 
+  a work sample test 
+  a biodata approach 
+ 
+Question 9
+0.07 / 0.07 pts
+During an interview, every applicant is asked, "Suppose you discovered that a coworker was repeatedly ignoring an important safety procedure. How would you handle the situation?" This is an example of:
+
+  A behavior description interview 
+  An unstructured interview 
+  A situational interview 
+  An assessment center 
+ 
+Question 10
+0.07 / 0.07 pts
+June interviews two applicants for the same position. She asks the first applicant about strengths and weaknesses, but asks the second applicant different questions about interests and experiences. June is conducting:
+
+  structured interviews 
+  unstructured interviews 
+  behavior description interviews 
+  situational interviews 
+ 
+Question 11
+0.06 / 0.06 pts
+In employee selection, predictors are primarily used to:
+
+  forecast applicants’ future outcomes on relevant performance criteria 
+  replace the need to identify job-related criteria 
+  determine whether or not employees have met organizational performance standards 
+  measure employee performance after applicants have been hired 
+ 
+Question 12
+0.06 / 0.06 pts
+Applicants for a machinist position are asked to complete several tasks that closely resemble the work they would actually perform if hired. This selection method is best described as a:
+
+  cognitive ability test 
+  biodata assessment 
+  work sample test 
+  integrity test 
+ 
+Question 13
+0.06 / 0.06 pts
+An applicant is asked directly about attitudes toward employee theft and whether they have ever engaged in dishonest workplace behavior. This is most characteristic of:
+
+  a personality-type integrity test 
+  an overt integrity test 
+  a personality test 
+  a biodata questionnaire 
+ 
+Question 14
+0.06 / 0.06 pts
+A selection questionnaire asks applicants about their personal histories and previous experiences on the assumption that past behavior can help predict future behavior. This approach is called:
+
+  biodata 
+  a situational judgment test 
+  a realistic job preview 
+  an application blank 
+ 
+Question 15
+0.06 / 0.06 pts
+During a structured interview, every applicant is asked, “Tell me about a time when you had to resolve a conflict with a coworker. What did you do?” This is an example of a:
+
+  situational interview 
+  behavior description interview 
+  realistic job preview 
+  unstructured interview 
+
+CHAPTER 7 Hiring Decisions and Employment Law
+Question 1
+0.07 / 0.07 pts
+A selection battery is best described as:
+
+  a collection of job-performance criteria used after employees are hired 
+  a set of predictors used together to make hiring decisions 
+  a set of recruitment methods used to attract qualified applicants 
+  a single test used to determine whether an applicant meets a cutoff 
+ 
+Question 2
+0.07 / 0.07 pts
+Person-environment fit refers to the:
+
+  similarity between an applicant’s personality and that of current employees 
+  degree to which an organization’s cultural environment and recruitment strategy attracts a diverse applicant pool 
+  match between an individual’s KSAOs and values and the demands and characteristics of the job and organization 
+  extent to which applicants perform similarly across several selection tests 
+ 
+Question 3
+0.07 / 0.07 pts
+An employer reviews publicly available information from applicants’ social media
+accounts as part of a background investigation. This practice is called:
+
+  validity generalization 
+  synthetic validity 
+  cybervetting 
+  KSAO matching 
+ 
+Question 4
+0.07 / 0.07 pts
+A company administers a selection test to job applicants, hires some of them, and several
+months later collects their job-performance data to determine how well the test predicted
+performance. This is an example of:
+
+  concurrent validation 
+  synthetic validation 
+  predictive validation 
+  cross-validation 
+ 
+Question 5
+0.07 / 0.07 pts
+A company administers a new selection test to current employees and compares their test
+scores with their existing job-performance scores. This is an example of:
+
+  concurrent validation 
+  predictive validation 
+  cross-validation 
+  validity generalization 
+ 
+Question 6
+0.07 / 0.07 pts
+A selection battery produces a strong validity coefficient in the original sample but a
+somewhat lower coefficient when applied to a new sample. In what is sometimes called ‘The
+Winner’s Curse’ the tool that was selected for its high level of predictive validity
+underperforms in the future due to the general principle of regression toward the mean.
+This decrease is called:
+
+  validity shrinkage 
+  loss of validity 
+  validity generalization 
+  situational specificity 
+ 
+Question 7
+0.07 / 0.07 pts
+An applicant must meet minimum cutoff scores on an ability test, interview, and work
+sample. A very high score on one predictor cannot compensate for falling below the cutoff
+on another. This type of multiple-cutoff selection method was most likely chosen because:
+
+  Each predictor assesses a separate minimum qualification considered essential for successful job performance. 
+  The organization is primarily interested in determining how well a weighted combination of predictors forecasts performance. 
+  Applicants must complete each predictor successfully before being permitted to take the next one. 
+  The organization wants exceptional performance on one predictor to compensate for weaknesses on another. 
+ 
+Question 8
+0.07 / 0.07 pts
+Applicants first complete an inexpensive screening test. Only those who pass move on to
+an interview, and only those who pass the interview complete an expensive assessment
+center. This type of multiple-hurdle selection method was most likely chosen because:
+
+  It allows high performance on one assessment to compensate for poor performance on another. 
+  It enables all applicants to complete every assessment before a final selection decision is made. 
+  It allows the organization to reserve costly, time-intensive assessments for applicants who pass preliminary screening stages. 
+  It combines predictor scores statistically to produce a single overall score. 
+ 
+Question 9
+0.07 / 0.07 pts
+An organization uses multiple regression to combine applicants’ ability-test, interview, and work-sample scores. Why would it choose this approach?
+
+  Because costly assessments should be administered only to applicants who pass earlier stages. 
+  Because strength on one predictor can compensate for weakness on another while all predictors contribute to estimated job performance. 
+  Because applicants must demonstrate minimum competence on every predictor, regardless of their other scores. 
+  Because each predictor must be evaluated separately without assigning it a statistical weight. 
+ 
+Question 10
+0.07 / 0.07 pts
+In employee selection, utility refers primarily to:
+
+  the degree to which a selection battery is useful and cost efficient 
+  the percentage of applicants who meet every predictor cutoff 
+  the percentage of current employees who are successful on the job 
+  the relationship between a predictor score and a performance criterion 
+ 
+Question 11
+0.06 / 0.06 pts
+An organization has 20 available positions and receives 200 qualified applications. The concept represented by the number of openings divided by the number of applicants is the:
+
+  base rate 
+  selection ratio 
+  validity coefficient 
+  decision accuracy rate 
+ 
+Question 12
+0.06 / 0.06 pts
+Under the common-law doctrine of employment at will:
+
+  employers may terminate employees only when they demonstrate just cause 
+  employment relationships must be governed by a written contract 
+  either the employer or employee may generally end the employment relationship at any time, subject to legal exceptions 
+  employees may be terminated only after failing a validated selection procedure 
+ 
+Question 13
+0.06 / 0.06 pts
+A selection procedure produces a selection rate for one group that is less than 80% of the selection rate for the group with the highest rate. This provides evidence of:
+
+  adverse impact 
+  affirmative action 
+  a bona fide occupational qualification 
+  disparate treatment 
+ 
+Question 14
+0.06 / 0.06 pts
+What is the primary distinction between disparate impact and disparate treatment?
+
+  Disparate impact is permitted when adverse impact occurs, whereas disparate treatment is always permitted with a valid test. 
+  Disparate impact applies only to hiring, whereas disparate treatment applies only to termination. 
+  Disparate impact involves unintentional discrimination, whereas disparate treatment involves intentional discrimination. 
+  Disparate impact concerns compensation, whereas disparate treatment concerns selection testing. 
+ 
+Question 15
+0.06 / 0.06 pts
+Under the Americans with Disabilities Act, an employer may be expected to modify aspects of a job or workplace so that a qualified individual with a disability can perform the job’s essential functions, provided the change does not create:
+
+  undue hardship 
+  adverse impact 
+  disparate treatment 
+  employment at will 
+
+
+Chapter 8: Training and Development
+
+Question 1
+0.07 / 0.07 pts
+From an organizational perspective, training is best described as:
+
+  formal procedures used to facilitate learning in support of company goals 
+  organized activities used to improve employee knowledge and skills 
+  developmental activities intended to prepare employees for future roles 
+  methods used to identify which employees need performance improvement 
+ 
+Question 2
+0.07 / 0.07 pts
+An organization reviews its long-term strategic goals before deciding what employee training to provide. Why is this organizational analysis an important part of assessing training needs?
+
+  It reveals whether training needs differ across employee demographic groups. 
+  It determines the tasks and competencies that employees must learn to perform. 
+  It identifies which individual employees lack the knowledge or skills required for their jobs. 
+  It ensures that training investments support the organization’s strategic priorities and broader performance needs. 
+ 
+Question 3
+0.07 / 0.07 pts
+A company examines the duties and demands of a customer-service position to determine what employees need to learn to perform the job effectively. Which type of analysis is being conducted?
+
+  person analysis 
+  task analysis 
+  demographic analysis 
+  organizational analysis 
+ 
+Question 4
+0.07 / 0.07 pts
+A manager reviews performance-appraisal information before recommending individual employees for additional training. Why is this person analysis useful?
+
+  It identifies which employees need training and the specific performance areas they need to improve. 
+  It determines whether employees from different demographic groups have similar training needs. 
+  It identifies the tasks and competencies that should be included in a training program. 
+  It determines whether training supports the organization’s long-term strategic priorities. 
+ 
+Question 5
+0.07 / 0.07 pts
+The education, training, and experiences employees possess that provide value to an organization are referred to as:
+
+  human capital 
+  trainee readiness 
+  instructional design 
+  continuous learning 
+ 
+Question 6
+0.07 / 0.07 pts
+A training program divides practice into several sessions separated by rest periods rather than requiring trainees to complete all practice at once. The textbook references this approach as:
+
+  massed practice 
+  whole learning 
+  distributed practice 
+  spaced learning 
+ 
+Question 7
+0.07 / 0.07 pts
+Emergency-room staff continue practicing a critical procedure even after they can perform it correctly. Why would overlearning be especially valuable in this setting?
+
+  It helps the procedure become automatic and reliably retrievable under pressure. 
+  It eliminates the need to refresh the procedure after the initial training period. 
+  It encourages staff to discover the procedure without guidance or structured practice. 
+  It allows staff to master each component separately without practicing the full procedure. 
+ 
+Question 8
+0.07 / 0.07 pts
+A trainer wants feedback to help employees improve their performance as efficiently as possible. Which feedback practice would be most effective?
+
+  Provide immediate feedback for major errors but avoid feedback when performance is correct. 
+  Provide frequent generalized feedback so employees can interpret it independently. 
+  Provide detailed feedback only after employees complete the entire training program. 
+  Provide clear, specific feedback promptly and frequently throughout practice. 
+ 
+Question 9
+0.07 / 0.07 pts
+The extent to which skills and procedures learned during training are later used on the job is called:
+
+  transfer of training 
+  trainee readiness 
+  continuous learning 
+  instructional design 
+ 
+Question 10
+0.07 / 0.07 pts
+A company designs training so employees practice with the same equipment, procedures, and working conditions they will encounter on the job. The identical elements theory predicts that this should improve the transfer of training because…?
+
+  Similar elements in the training and work environments make it easier to apply practiced skills on the job. 
+  Practicing continuously without rest strengthens retention regardless of similarities between the training and work environments. 
+  Observing and imitating an expert is more important than practicing under realistic conditions. 
+  Matching training participants by demographic characteristics ensures that they will use the skills consistently. 
+ 
+Question 11
+0.06 / 0.06 pts
+A company selects a self-paced training method that presents content in small, logically sequenced units and requires employees to demonstrate understanding before progressing. Why might this approach improve learning?
+
+  It allows employees to progress at their own pace and receive feedback as they master each unit. 
+  It requires employees to learn primarily by observing and imitating an experienced model. 
+  It recreates the physical conditions and equipment found in the work environment. 
+  It ensures that all employees complete the material at the same speed. 
+ 
+Question 12
+0.06 / 0.06 pts
+A new employee gradually acquires the attitudes, behaviors, and knowledge needed to function as a member of the organization. This process is called:
+
+  organizational socialization 
+  behavior modeling 
+  executive coaching 
+  continuous learning 
+ 
+Question 13
+0.06 / 0.06 pts
+After a training program, participants complete a survey indicating whether they enjoyed the program and believed it was worthwhile. In Kirkpatrick’s taxonomy, this is an example of:
+
+  behavioral criteria 
+  results criteria 
+  reaction criteria 
+  learning criteria 
+ 
+Question 14
+0.06 / 0.06 pts
+Several months after training, an organization examines whether employees are actually using the newly learned skills in their jobs. In Kirkpatrick’s taxonomy, this is an example of:
+
+  results criteria 
+  reaction criteria 
+  learning criteria 
+  behavioral criteria 
+ 
+Question 15
+0.06 / 0.06 pts
+An organization uses a Solomon four-group design to evaluate a training program. Why would it choose this design?
+
+  To separate the effects of training from any effects caused by taking the pretest 
+  To compare employee performance before and after training without using a control group 
+  To identify the job tasks and competencies that should be included in training 
+  To determine which individual employees require additional training
+
+Chapter 9: Motivation at Work
+
+Question 1
+0.07 / 0.07 pts
+Work motivation is best described as the force that:
+
+  determines whether employees are satisfied with their jobs 
+  energizes, directs, and sustains work behavior 
+  causes employees to perform at the highest possible level 
+  determines whether employees remain with an organization 
+ 
+Question 2
+0.07 / 0.07 pts
+An employee strongly values career advancement but declines a challenging assignment because she doubts that her effort will lead to successful performance. What does a cognitive-choice theory add to a need–motive–value explanation of her motivation?
+
+  It identifies the underlying needs and values that make advancement desirable. 
+  It explains how her expectations about effort, performance, and outcomes shape her choice. 
+  It determines whether the assignment satisfies her basic psychological needs. 
+  It identifies the stable personality traits responsible for her behavior. 
+ 
+Question 3
+0.07 / 0.07 pts
+According to Maslow’s hierarchy of needs, an employee who is primarily motivated by gaining respect, confidence, and recognition is focused on:
+
+  safety needs 
+  esteem needs 
+  self-actualization needs 
+  love and belonging needs 
+ 
+Question 4
+0.07 / 0.07 pts
+One major difference between Alderfer’s Existence-Relatedness-Growth theory and Maslow’s hierarchy is that ERG theory proposes that:
+
+  growth needs are unrelated to self-esteem or self-actualization 
+  only one category of needs can motivate a person at a time 
+  lower-level needs must always be satisfied before higher-level needs emerge 
+  several categories of needs can operate simultaneously 
+ 
+Question 5
+0.07 / 0.07 pts
+According to Alderfer’s frustration-regression hypothesis, an employee who cannot satisfy a higher-level need may:
+
+  shift attention toward satisfying a lower-level need 
+  become focused exclusively on self-actualization 
+  stop being motivated altogether 
+  increase effort only if rewards are removed 
+ 
+Question 6
+0.07 / 0.07 pts
+According to Herzberg’s two-factor theory, which of the following is a hygiene factor?
+
+  advancement 
+  recognition 
+  working conditions 
+  interesting work 
+ 
+Question 7
+0.07 / 0.07 pts
+Hospital custodians are shown how their work prevents infections and protects patients’ lives. According to job characteristics theory, why might this increase their motivation?
+
+  It increases task significance by showing how their work affects other people. 
+  It provides knowledge of results by giving them immediate performance feedback. 
+  It increases autonomy by allowing them to select their own work schedules. 
+  It strengthens their belief that greater effort will always produce financial rewards. 
+ 
+Question 8
+0.07 / 0.07 pts
+An employee believes that the procedures used to determine promotions are consistent and fair. This perception most directly reflects:
+
+  distributive justice 
+  interactional justice 
+  informational justice 
+  procedural justice 
+ 
+Question 9
+0.07 / 0.07 pts
+In expectancy theory, an employee’s belief that increased effort will result in better performance is called:
+
+  valence 
+  equity 
+  expectancy 
+  instrumentality 
+ 
+Question 10
+0.07 / 0.07 pts
+In expectancy theory, an employee believes that receiving a strong performance evaluation will lead to a salary increase. This belief reflects:
+
+  self-efficacy 
+  expectancy 
+  valence 
+  instrumentality 
+ 
+Question 11
+0.06 / 0.06 pts
+Goal-setting theory suggests that motivation is generally enhanced when employees:
+
+  accept specific, difficult goals and receive feedback about progress 
+  are assigned broad goals that allow maximum flexibility 
+  focus primarily on rewards rather than performance standards 
+  avoid goals that require sustained effort over time 
+ 
+Question 12
+0.06 / 0.06 pts
+An employee’s belief that they are capable of successfully completing the task set before them is called:
+
+  self-regulation 
+  self-efficacy 
+  equity sensitivity 
+  growth need strength 
+ 
+Question 13
+0.06 / 0.06 pts
+According to control theory, detecting a discrepancy between current performance and a desired standard should generally motivate an individual to:
+
+  discontinue feedback about performance 
+  lower the performance standard until it matches current behavior 
+  focus exclusively on external rewards 
+  reduce the discrepancy between current and desired performance 
+ 
+Question 14
+0.06 / 0.06 pts
+Management by objectives is best described as a system in which:
+
+  managers and subordinates establish goals, develop plans, review progress, and then establish new goals 
+  employees redesign their own jobs without involvement from supervisors 
+  rewards are based entirely on comparisons with coworkers 
+  managers independently set goals and evaluate employees without employee input 
+ 
+Question 15
+0.06 / 0.06 pts
+An employee voluntarily changes aspects of their tasks and responsibilities so that the job better fits their strengths and interests. This is an example of:
+
+  job crafting 
+  job enrichment 
+  organizational behavior management 
+  management by objectives 
+
+Chapter 10: Job Attitudes
+
+Question 1
+0.07 / 0.07 pts
+Janice dislikes her job and does not believe that her work affects anyone in a meaningful way. According to the theory of planned behavior, Janice’s negative feelings toward her job represent her:
+
+  subjective norm 
+  attitude 
+  perceived behavioral control 
+  intention 
+ 
+Question 2
+0.07 / 0.07 pts
+According to the theory of planned behavior, attitudes, subjective norms, and perceived behavioral control primarily influence:
+
+  job satisfaction, which then influences performance 
+  affective disposition, which then influences attitudes 
+  intentions, which then influence behavior 
+  organizational commitment, which then influences turnover 
+ 
+Question 3
+0.07 / 0.07 pts
+Research supporting affective dispositions suggests that an employee who tends to be satisfied in one job may also tend to:
+
+  experience similar levels of satisfaction across different jobs and organizations 
+  become more satisfied only when pay and benefits increase 
+  become less satisfied whenever the employee changes organizations 
+  experience satisfaction primarily as a result of supervisor behavior 
+ 
+Question 4
+0.07 / 0.07 pts
+Franz views himself as having little value or importance to his organization. Franz would be described as having low:
+
+  affective disposition 
+  work centrality 
+  perceived organizational support 
+  organization-based self-esteem 
+ 
+Question 5
+0.07 / 0.07 pts
+Which measure of job satisfaction assesses satisfaction with the work itself, pay, promotion opportunities, supervision, and coworkers?
+
+  Minnesota Satisfaction Questionnaire 
+  Job Descriptive Index 
+  Job Diagnostic Survey 
+  Faces Scale 
+ 
+Question 6
+0.07 / 0.07 pts
+Which statement best reflects the relationship between job satisfaction and job performance?
+
+  Job satisfaction strongly determines task performance 
+  Job satisfaction and performance are essentially unrelated 
+  Job satisfaction predicts withdrawal, but not performance 
+  Job satisfaction has a moderate positive relationship with performance 
+ 
+Question 7
+0.07 / 0.07 pts
+In the Steers and Rhodes attendance model, employee attendance is influenced by:
+
+  affective disposition and perceived organizational support 
+  ease of movement and desirability of movement 
+  organizational commitment and work centrality 
+  ability to attend and pressure to attend 
+ 
+Question 8
+0.07 / 0.07 pts
+Counterproductive work behaviors are best described as:
+
+  behaviors that reduce an employee’s opportunities for promotion 
+  behaviors intended to harm the organization, its employees, or its stakeholders 
+  withdrawal behaviors that always result in employee turnover 
+  behaviors caused exclusively by low organizational commitment 
+ 
+Question 9
+0.07 / 0.07 pts
+Ziva remains with her company partly because leaving would mean losing substantial retirement benefits and other investments she has accumulated. This is an example of:
+
+  continuance commitment 
+  perceived organizational support 
+  affective commitment 
+  normative commitment 
+ 
+Question 10
+0.07 / 0.07 pts
+Emotional attachment to an organization, including identification with its goals and values, is characteristic of:
+
+  affective commitment 
+  job involvement 
+  continuance commitment 
+  normative commitment 
+ 
+Question 11
+0.06 / 0.06 pts
+An employee remains with an organization because they believe they have a moral obligation to stay. This reflects:
+
+  normative commitment 
+  continuance commitment 
+  affective commitment 
+  work centrality 
+ 
+Question 12
+0.06 / 0.06 pts
+Dan loves his work and regularly devotes substantial personal time to it at the expense of other important areas of his life. Dan is most likely:
+
+  high in perceived organizational support 
+  a workaholic 
+  low in job involvement 
+  experiencing continuance commitment 
+ 
+Question 13
+0.06 / 0.06 pts
+Johanna believes that her organization values her contributions and cares about her well-being. This is best described as:
+
+  organizational justice 
+  affective commitment 
+  perceived organizational support 
+  organization-based self-esteem 
+ 
+Question 14
+0.06 / 0.06 pts
+Which statement best distinguishes job involvement from work centrality?
+
+  Job involvement concerns job satisfaction, whereas work centrality concerns organizational commitment 
+  Job involvement concerns a particular job, whereas work centrality concerns the importance of work in one’s life more generally 
+  Job involvement concerns emotional attachment, whereas work centrality concerns financial investment 
+  Job involvement concerns attachment to an organization, whereas work centrality concerns attachment to coworkers 
+ 
+Question 15
+0.06 / 0.06 pts
+An employee feels angry with a customer but deliberately hides that anger and displays the emotions expected by the organization. This behavior involves:
+
+  work centrality 
+  emotional labor 
+  affective disposition 
+  organization-based self-esteem 
+
+Chapter 11 Stress, Health, and Worker Well-Being
+
+Question 1
+0.07 / 0.07 pts
+A stressor is best described as:
+
+  an undesirable personal outcome caused by stressful experiences 
+  a physiological reaction that occurs after prolonged burnout 
+  a disruptive event or force that pushes functioning beyond its range of stability 
+  a coping strategy used to manage excessive work demands 
+ 
+Question 2
+0.07 / 0.07 pts
+According to Karasek’s demand-control model, strain is especially likely when employees experience:
+
+  low psychological demands with extensive social support 
+  high autonomy with clearly defined role expectations 
+  low workload with limited opportunities for advancement 
+  high psychological demands with little decision latitude 
+ 
+Question 3
+0.07 / 0.07 pts
+An employee receives conflicting instructions from two supervisors about how the same task should be completed. This is an example of:
+
+  role ambiguity 
+  environmental uncertainty 
+  job demands 
+  role conflict 
+ 
+Question 4
+0.07 / 0.07 pts
+Burnout is characterized by emotional exhaustion, depersonalization, and:
+
+  decreased workload 
+  increased role ambiguity 
+  physiological activation 
+  reduced personal accomplishment 
+ 
+Question 5
+0.07 / 0.07 pts
+Which situation is most characteristic of a hindrance-related stressor?
+
+  dealing with organizational politics and job insecurity 
+  conducting a performance evaluation 
+  learning to manage several demanding assignments 
+  being given increased responsibility on an important project 
+ 
+Question 6
+0.07 / 0.07 pts
+Callista’s boss gives her so much work that she worries she will not finish it. She takes a yoga class to help herself relax and manage the emotional reaction. Callista is using:
+
+  role-focused coping 
+  emotion-focused coping 
+  problem-focused coping 
+  resource-focused coping 
+ 
+Question 7
+0.07 / 0.07 pts
+An employee is overwhelmed because a project lacks a clear schedule. She responds by creating a detailed timeline and reorganizing the work so the project can be completed. This is an example of:
+
+  conservation of resources 
+  problem-focused coping 
+  emotion-focused coping 
+  work-family enrichment 
+ 
+Question 8
+0.07 / 0.07 pts
+According to the job demands–resources model, stress is most likely when:
+
+  available resources are insufficient to meet job demands 
+  employees have more resources than they need to complete their work 
+  job demands are accompanied by high levels of autonomy 
+  employees conserve resources for future challenges 
+ 
+Question 9
+0.07 / 0.07 pts
+Lena recently became a supervisor and finds that negotiation skills she develops at work also help her become a better parent. This is an example of work-family:
+
+  conflict 
+  enrichment 
+  interference 
+  strain 
+ 
+Question 10
+0.07 / 0.07 pts
+Work-family conflict is considered bidirectional because:
+
+  work can interfere with family and family can interfere with work 
+  work and family demands always produce the same level of strain 
+  conflict occurs only when both work and family demands increase simultaneously 
+  employees experience conflict only when neither domain provides adequate resources 
+ 
+Question 11
+0.06 / 0.06 pts
+Which supervisor behavior is most consistent with family-supportive supervisor behavior?
+
+  discouraging flexible arrangements because they may interfere with productivity 
+  encouraging employees to keep work and family concerns completely separate 
+  reducing employee autonomy to ensure that work requirements are consistently met 
+  helping employees manage work responsibilities while recognizing family demands 
+ 
+Question 12
+0.06 / 0.06 pts
+Under the Family and Medical Leave Act, eligible employees of covered employers may generally take up to:
+
+  6 weeks of paid leave 
+  12 weeks of unpaid, job-protected leave 
+  12 months of unpaid leave 
+  26 weeks of paid family leave 
+ 
+Question 13
+0.06 / 0.06 pts
+Underemployment occurs when:
+
+  an employee works fewer hours than coworkers in the same occupation 
+  a worker is employed in a position that does not use their full capabilities 
+  a worker remains unemployed for an extended period after a layoff 
+  an employee temporarily performs duties outside their formal role 
+ 
+Question 14
+0.06 / 0.06 pts
+Research on job loss indicates that layoff survivors often experience:
+
+  increased productivity and greater organizational trust 
+  less anxiety than employees who were actually laid off 
+  greater job satisfaction after organizational downsizing 
+  lower productivity and reduced trust in the organization 
+ 
+Question 15
+0.06 / 0.06 pts
+Amelia becomes angry after receiving a negative performance review and deliberately attempts to damage her supervisor’s computer. Because the destructive behavior is triggered by an organizational event, it is an example of:
+
+  organization-motivated aggression 
+  counterproductive coping 
+  organization-motivated violence 
+  role conflict 
+`;
+
+    const RAW_ANSWER_KEY = String.raw`
+Chapter 1: I/O Psychology: Then and Now
+
+* **Question 1:** gig economy.
+* **Question 2:** Competencies
+* **Question 3:** False
+* **Question 4:** theory and application.
+* **Question 5:** principles; theories
+* **Question 6:** referrals
+* **Question 7:** True
+* **Question 8:** machine learning.
+* **Question 9:** False
+* **Question 10:** Talent manager
+* **Question 11:** ergonomics
+* **Question 12:** government and private industry.
+* **Question 13:** Increasing diversity and inclusion within the field itself
+* **Question 14:** They have led to swift and dramatic changes in the workplace and are integral to measurement and prediction in hiring and selection decisions
+* **Question 15:** Competencies in I/O psychology can be applied to emerging and evolving workplace challenges
+
+Chapter 2: Research Methods in I/O Psychology
+
+* **Question 1:** description.
+* **Question 2:** testable.
+* **Question 3:** inductive and deductive reasoning.
+* **Question 4:** independent
+* **Question 5:** independent variable.
+* **Question 6:** extraneous variable.
+* **Question 7:** draw causal inferences about relationships among variables.
+* **Question 8:** high in internal validity and relatively lower in external validity.
+* **Question 9:** quasi-experiment.
+* **Question 10:** archival research.
+* **Question 11:** test–retest reliability.
+* **Question 12:** interrater reliability.
+* **Question 13:** content validity.
+* **Question 14:** predictive validity.
+* **Question 15:** higher motivation tends to be associated with higher satisfaction.
+
+Chapter 3: Job Analysis: Understanding Work
+
+* **Question 1:** Job analysis
+* **Question 2:** Common-Metric Questionnaire (CMQ)
+* **Question 3:** Functional Job Analysis
+* **Question 4:** worker-oriented techniques
+* **Question 5:** The requirements of the job itself and not personality
+* **Question 6:** Task-oriented
+* **Question 7:** A subject matter expert with substantial knowledge of the job
+* **Question 8:** The socioeconomic background of the employee
+* **Question 9:** Competency modeling
+* **Question 10:** True
+* **Question 11:** A job specification
+* **Question 12:** Comparable worth
+* **Question 13:** Compensable factors
+* **Question 14:** Selection, performance appraisal, training, and compensation
+* **Question 15:** It can be difficult to show that the identified worker characteristics are directly related to specific job tasks
+
+Chapter 4: Criterion Measurement
+
+* **Question 1:** The criterion problem
+* **Question 2:** Ultimate criterion
+* **Question 3:** Actual criterion
+* **Question 4:** Relevance
+* **Question 5:** Criterion deficiency
+* **Question 6:** Criterion contamination
+* **Question 7:** Reliability
+* **Question 8:** Sensitivity
+* **Question 9:** Practicality
+* **Question 10:** Composite criterion
+* **Question 11:** Unequally weighting criteria
+* **Question 12:** Dynamic criteria
+* **Question 13:** Situational factors outside the employee's control can influence the measure.
+* **Question 14:** Task performance contributes to the technical core of the organization, while contextual performance supports the broader social and psychological environment.
+* **Question 15:** Contextual performance
+
+Chapter 5: Performance Management and Feedback
+
+* **Question 1:** A system of individual performance improvement that typically includes continuous coaching and feedback, performance appraisal, goal setting, and developmental planning
+* **Question 2:** Feedback directed at the person (abilities, character) rather than the task distracts individuals and pulls cognitive resources away from task performance
+* **Question 3:** True halo reflects accurate intercorrelations among performance dimensions, whereas traditional halo represents rating error
+* **Question 4:** Frame-of-Reference (FOR) training
+* **Question 5:** Leniency error
+* **Question 6:** Over one-third of studies showed negative effects of feedback, challenging the assumption that feedback is always beneficial
+* **Question 7:** Are surprised or defensive when receiving feedback, despite being low performers who lack accurate self-awareness
+* **Question 8:** Managers tend to downplay indirect performance information that is more frequent in remote settings, despite having both direct and indirect data available
+* **Question 9:** A positive LMX relationship leads to favorable ratings when there is also frequent communication; ratings are less favorable even with positive LMX when communication is infrequent
+* **Question 10:** A score of 5 from one rater means the same as a score of 5 from any other rater, creating consistency in performance standards across evaluators
+* **Question 11:** Ensure accuracy of performance ratings regardless of rater training
+* **Question 12:** Trust in the supervisor
+* **Question 13:** A job analysis was used, written instructions were provided, employees could review appraisals, multiple raters agreed, and rater training was conducted
+* **Question 14:** False
+* **Question 15:** False
+
+Chapter 6: Predictors
+
+* **Question 1:** the test adjusts the difficulty according to the test taker’s responses, which allows efficient estimation of ability level
+* **Question 2:** Group tests allow organizations to efficiently assess many applicants at lower cost.
+* **Question 3:** performance test
+* **Question 4:** the strength of the relationship between a predictor and a criterion
+* **Question 5:** clerical ability
+* **Question 6:** psychomotor ability
+* **Question 7:** conscientiousness and emotional stability
+* **Question 8:** a realistic job preview
+* **Question 9:** A situational interview
+* **Question 10:** unstructured interviews
+* **Question 11:** forecast applicants’ future outcomes on relevant performance criteria
+* **Question 12:** work sample test
+* **Question 13:** an overt integrity test
+* **Question 14:** biodata
+* **Question 15:** behavior description interview
+
+Chapter 7: Hiring Decisions and Employment Law
+
+* **Question 1:** a set of predictors used together to make hiring decisions
+* **Question 2:** match between an individual’s KSAOs and values and the demands and characteristics of the job and organization
+* **Question 3:** cybervetting
+* **Question 4:** predictive validation
+* **Question 5:** concurrent validation
+* **Question 6:** validity shrinkage
+* **Question 7:** Each predictor assesses a separate minimum qualification considered essential for successful job performance.
+* **Question 8:** It allows the organization to reserve costly, time-intensive assessments for applicants who pass preliminary screening stages.
+* **Question 9:** Because strength on one predictor can compensate for weakness on another while all predictors contribute to estimated job performance.
+* **Question 10:** the degree to which a selection battery is useful and cost efficient
+* **Question 11:** selection ratio
+* **Question 12:** either the employer or employee may generally end the employment relationship at any time, subject to legal exceptions
+* **Question 13:** adverse impact
+* **Question 14:** Disparate impact involves unintentional discrimination, whereas disparate treatment involves intentional discrimination.
+* **Question 15:** undue hardship
+
+Chapter 8: Training and Development
+
+* **Question 1:** formal procedures used to facilitate learning in support of company goals
+* **Question 2:** It ensures that training investments support the organization’s strategic priorities and broader performance needs.
+* **Question 3:** task analysis
+* **Question 4:** It identifies which employees need training and the specific performance areas they need to improve.
+* **Question 5:** human capital
+* **Question 6:** distributed practice
+* **Question 7:** It helps the procedure become automatic and reliably retrievable under pressure.
+* **Question 8:** Provide clear, specific feedback promptly and frequently throughout practice.
+* **Question 9:** transfer of training
+* **Question 10:** Similar elements in the training and work environments make it easier to apply practiced skills on the job.
+* **Question 11:** It allows employees to progress at their own pace and receive feedback as they master each unit.
+* **Question 12:** organizational socialization
+* **Question 13:** reaction criteria
+* **Question 14:** behavioral criteria
+* **Question 15:** To separate the effects of training from any effects caused by taking the pretest
+
+Chapter 9: Motivation at Work
+
+* **Question 1:** energizes, directs, and sustains work behavior
+* **Question 2:** It explains how her expectations about effort, performance, and outcomes shape her choice.
+* **Question 3:** esteem needs
+* **Question 4:** several categories of needs can operate simultaneously
+* **Question 5:** shift attention toward satisfying a lower-level need
+* **Question 6:** working conditions
+* **Question 7:** It increases task significance by showing how their work affects other people.
+* **Question 8:** procedural justice
+* **Question 9:** expectancy
+* **Question 10:** instrumentality
+* **Question 11:** accept specific, difficult goals and receive feedback about progress
+* **Question 12:** self-efficacy
+* **Question 13:** reduce the discrepancy between current and desired performance
+* **Question 14:** managers and subordinates establish goals, develop plans, review progress, and then establish new goals
+* **Question 15:** job crafting
+
+Chapter 10: Job Attitudes: Industrial-Organizational Psychology
+
+* **Question 1:** attitude
+* **Question 2:** intentions, which then influence behavior
+* **Question 3:** experience similar levels of satisfaction across different jobs and organizations
+* **Question 4:** organization-based self-esteem
+* **Question 5:** Job Descriptive Index
+* **Question 6:** Job satisfaction has a moderate positive relationship with performance
+* **Question 7:** ability to attend and pressure to attend
+* **Question 8:** behaviors intended to harm the organization, its employees, or its stakeholders
+* **Question 9:** continuance commitment
+* **Question 10:** affective commitment
+* **Question 11:** normative commitment
+* **Question 12:** a workaholic
+* **Question 13:** perceived organizational support
+* **Question 14:** Job involvement concerns a particular job, whereas work centrality concerns the importance of work in one’s life more generally
+* **Question 15:** emotional labor
+
+Chapter 11: Stress, Health, and Worker Well-Being
+
+* **Question 1:** a disruptive event or force that pushes functioning beyond its range of stability
+* **Question 2:** high psychological demands with little decision latitude
+* **Question 3:** role conflict
+* **Question 4:** reduced personal accomplishment
+* **Question 5:** dealing with organizational politics and job insecurity
+* **Question 6:** emotion-focused coping
+* **Question 7:** problem-focused coping
+* **Question 8:** available resources are insufficient to meet job demands
+* **Question 9:** enrichment
+* **Question 10:** work can interfere with family and family can interfere with work
+* **Question 11:** helping employees manage work responsibilities while recognizing family demands
+* **Question 12:** 12 weeks of unpaid, job-protected leave
+* **Question 13:** a worker is employed in a position that does not use their full capabilities
+* **Question 14:** lower productivity and reduced trust in the organization
+* **Question 15:** organization-motivated aggression
+`;
+
+    /********************************************************************
+     * 2. PARSER & COMPILER FOR THE 165 QUESTIONS AND ANSWERS
+     ********************************************************************/
+    function normalizeText(str) {
+      return (str || '')
+        .trim()
+        .replace(/[’‘]/g, "'")
+        .replace(/[“”]/g, '"')
+        .replace(/[–—]/g, '-')
+        .replace(/\.+$/, '')
+        .trim()
+        .toLowerCase();
+    }
+
+    function compileQuestionDatabase() {
+      // 1. Parse Answer Key Map: answersByChapter[chapterNum][questionNum] = answerString
+      const answersByChapter = {};
+      const chapterTitles = {};
+      let currentAnsChap = null;
+
+      const ansLines = RAW_ANSWER_KEY.split(/\r?\n/);
+      for (const rawLine of ansLines) {
+        const line = rawLine.trim();
+        if (!line) continue;
+
+        const chapMatch = line.match(/^Chapter\s+(\d+)\s*:\s*(.+)$/i);
+        if (chapMatch) {
+          currentAnsChap = parseInt(chapMatch[1], 10);
+          chapterTitles[currentAnsChap] = chapMatch[2].trim();
+          answersByChapter[currentAnsChap] = {};
+          continue;
+        }
+
+        const qAnsMatch = line.match(/^\*\s*\*\*Question\s+(\d+):\*\*\s*(.+)$/i);
+        if (qAnsMatch && currentAnsChap !== null) {
+          const qNum = parseInt(qAnsMatch[1], 10);
+          answersByChapter[currentAnsChap][qNum] = qAnsMatch[2].trim();
+        }
+      }
+
+      // 2. Parse Question Bank
+      const questions = [];
+      const qLines = RAW_QUESTION_BANK.split(/\r?\n/);
+      let currentChap = null;
+      let currentQNum = null;
+      let currentPromptLines = [];
+      let currentOptions = [];
+
+      function finalizeQuestion() {
+        if (currentChap !== null && currentQNum !== null) {
+          const id = `ch${currentChap}_q${currentQNum}`;
+          const prompt = currentPromptLines.join(' ').replace(/\s+/g, ' ').trim();
+          const rawAnswer = (answersByChapter[currentChap] && answersByChapter[currentChap][currentQNum]) || '';
+          const normAns = normalizeText(rawAnswer);
+
+          let correctIndex = currentOptions.findIndex(opt => normalizeText(opt) === normAns);
+          if (correctIndex === -1) {
+            // Fallback partial match if needed
+            correctIndex = currentOptions.findIndex(opt =>
+              normalizeText(opt).includes(normAns) || normAns.includes(normalizeText(opt))
+            );
+          }
+
+          questions.push({
+            id,
+            chapterNumber: currentChap,
+            chapterTitle: chapterTitles[currentChap] || `Chapter ${currentChap}`,
+            questionNumber: currentQNum,
+            prompt,
+            options: currentOptions.map(o => o.trim()),
+            correctIndex: correctIndex !== -1 ? correctIndex : 0,
+            correctAnswerText: currentOptions[correctIndex !== -1 ? correctIndex : 0] || rawAnswer
+          });
+        }
+      }
+
+      for (const rawLine of qLines) {
+        const trimmed = rawLine.trim();
+
+        // Check for Chapter header
+        const chapHeaderMatch = trimmed.match(/^CHAPTER\s+(\d+)\s*:?\s*(.+)$/i);
+        if (chapHeaderMatch) {
+          finalizeQuestion();
+          currentChap = parseInt(chapHeaderMatch[1], 10);
+          if (!chapterTitles[currentChap]) {
+            chapterTitles[currentChap] = chapHeaderMatch[2].trim();
+          }
+          currentQNum = null;
+          currentPromptLines = [];
+          currentOptions = [];
+          continue;
+        }
+
+        // Check for Question header
+        const qHeaderMatch = trimmed.match(/^Question\s+(\d+)$/i);
+        if (qHeaderMatch) {
+          finalizeQuestion();
+          currentQNum = parseInt(qHeaderMatch[1], 10);
+          currentPromptLines = [];
+          currentOptions = [];
+          continue;
+        }
+
+        // Skip point lines like "0.07 / 0.07 pts"
+        if (/^\d+\.\d+\s*\/\s*\d+\.\d+\s*pts$/i.test(trimmed)) {
+          continue;
+        }
+
+        if (!trimmed) continue;
+
+        if (currentChap !== null && currentQNum !== null) {
+          // Option lines in the bank are indented with 2 spaces
+          if (rawLine.startsWith('  ') && trimmed.length > 0) {
+            currentOptions.push(trimmed);
+          } else {
+            // If options haven't started yet, it's part of the multi-line prompt
+            if (currentOptions.length === 0) {
+              currentPromptLines.push(trimmed);
+            }
+          }
+        }
+      }
+      finalizeQuestion();
+
+      return { questions, chapterTitles };
+    }
+
+    const { questions: ALL_QUESTIONS, chapterTitles: CHAPTER_TITLES } = compileQuestionDatabase();
+    const QUESTIONS_BY_ID = {};
+    ALL_QUESTIONS.forEach(q => { QUESTIONS_BY_ID[q.id] = q; });
+
+    /********************************************************************
+     * 3. STATE MANAGEMENT & MUTUALLY EXCLUSIVE BANK ENGINE
+     ********************************************************************/
+    const STORAGE_KEY = 'io_psych_mc_pwa_state_v1';
+
+    let appState = {
+      unseenBankIds: [], // Questions in the Question Bank not yet shown in this cycle
+      mutedBankIds: [],  // Questions in the Question Bank answered correctly in this cycle
+      reviewBankIds: []  // Questions moved to the Review Bank (excluded from Question Bank)
+    };
+
+    // Active Round Session State
+    let activeRound = {
+      mode: 'new',           // 'new' | 'review'
+      maxQuestions: 10,
+      questionsAnswered: 0,
+      correctCount: 0,
+      currentQuestion: null,
+      answeredCurrent: false,
+      addedToReviewManually: false,
+      cycleResetTriggered: false,
+      roundReviewPoolIds: [], // For Review mode: avoids repeating the same review item in the same round
+      history: []             // Array of { question, selectedIndex, isCorrect, finalBankStatus }
+    };
+
+    function loadAppState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (
+            Array.isArray(parsed.unseenBankIds) &&
+            Array.isArray(parsed.mutedBankIds) &&
+            Array.isArray(parsed.reviewBankIds)
+          ) {
+            appState = parsed;
+            reconcileBanks();
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load saved state from localStorage, initializing fresh.', e);
+      }
+
+      // Initialize default state: all 165 questions in unseenBankIds
+      appState = {
+        unseenBankIds: ALL_QUESTIONS.map(q => q.id),
+        mutedBankIds: [],
+        reviewBankIds: []
+      };
+      saveAppState();
+    }
+
+    // Ensures strict mutual exclusivity and that all 165 valid IDs are accounted for
+    function reconcileBanks() {
+      const validIds = new Set(ALL_QUESTIONS.map(q => q.id));
+      const seen = new Set();
+
+      const cleanReview = [];
+      for (const id of appState.reviewBankIds) {
+        if (validIds.has(id) && !seen.has(id)) {
+          seen.add(id);
+          cleanReview.push(id);
+        }
+      }
+
+      const cleanMuted = [];
+      for (const id of appState.mutedBankIds) {
+        if (validIds.has(id) && !seen.has(id)) {
+          seen.add(id);
+          cleanMuted.push(id);
+        }
+      }
+
+      const cleanUnseen = [];
+      for (const id of appState.unseenBankIds) {
+        if (validIds.has(id) && !seen.has(id)) {
+          seen.add(id);
+          cleanUnseen.push(id);
+        }
+      }
+
+      // Any missing valid question ID defaults to unseenBankIds
+      for (const q of ALL_QUESTIONS) {
+        if (!seen.has(q.id)) {
+          cleanUnseen.push(q.id);
+          seen.add(q.id);
+        }
+      }
+
+      appState.reviewBankIds = cleanReview;
+      appState.mutedBankIds = cleanMuted;
+      appState.unseenBankIds = cleanUnseen;
+      saveAppState();
+    }
+
+    function saveAppState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.error('Failed to save state to localStorage:', e);
+      }
+    }
+
+    /********************************************************************
+     * 4. UI UPDATES & HOME SCREEN LOGIC
+     ********************************************************************/
+    function updateHomeUI() {
+      // If unseen is 0 and muted has items, auto-rollover cycle so home stats look ready
+      if (appState.unseenBankIds.length === 0 && appState.mutedBankIds.length > 0) {
+        appState.unseenBankIds = [...appState.mutedBankIds];
+        appState.mutedBankIds = [];
+        saveAppState();
+      }
+
+      const unseenCount = appState.unseenBankIds.length;
+      const mutedCount = appState.mutedBankIds.length;
+      const reviewCount = appState.reviewBankIds.length;
+      const totalMainBank = unseenCount + mutedCount;
+
+      document.getElementById('statUnseenCount').textContent = unseenCount;
+      document.getElementById('statMutedCount').textContent = mutedCount;
+      document.getElementById('statReviewCount').textContent = reviewCount;
+
+      // Cycle progress bar
+      const pct = totalMainBank > 0 ? Math.round((mutedCount / totalMainBank) * 100) : 100;
+      document.getElementById('cycleProgressLabel').textContent = `${mutedCount} / ${totalMainBank} completed in current cycle`;
+      document.getElementById('cycleProgressBar').style.width = `${pct}%`;
+
+      // Start New button & badge
+      const btnStartNew = document.getElementById('btnStartNew');
+      const badgeStartNewAvail = document.getElementById('badgeStartNewAvail');
+      badgeStartNewAvail.textContent = `${totalMainBank} in Question Bank`;
+      btnStartNew.disabled = totalMainBank === 0;
+
+      // Review button & badge
+      const btnStartReview = document.getElementById('btnStartReview');
+      const btnStartReviewLabel = document.getElementById('btnStartReviewLabel');
+      const badgeReviewAvail = document.getElementById('badgeReviewAvail');
+      badgeReviewAvail.textContent = `${reviewCount} in Review Bank`;
+
+      if (reviewCount === 0) {
+        btnStartReview.disabled = true;
+        btnStartReviewLabel.textContent = 'Review Bank is Empty';
+      } else {
+        btnStartReview.disabled = false;
+        const roundTarget = Math.min(10, reviewCount);
+        btnStartReviewLabel.textContent = `Start Review (${roundTarget} Q${roundTarget > 1 ? 's' : ''})`;
+      }
+
+      renderChapterBreakdown();
+    }
+
+    function renderChapterBreakdown() {
+      const panel = document.getElementById('chapterBreakdownPanel');
+      const unseenSet = new Set(appState.unseenBankIds);
+      const mutedSet = new Set(appState.mutedBankIds);
+      const reviewSet = new Set(appState.reviewBankIds);
+
+      let html = '';
+      for (let ch = 1; ch <= 11; ch++) {
+        const chQuestions = ALL_QUESTIONS.filter(q => q.chapterNumber === ch);
+        let u = 0, m = 0, r = 0;
+        chQuestions.forEach(q => {
+          if (unseenSet.has(q.id)) u++;
+          else if (mutedSet.has(q.id)) m++;
+          else if (reviewSet.has(q.id)) r++;
+        });
+
+        html += `
+          <div class="px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="font-bold text-slate-900">Chapter ${ch}:</span>
+              <span class="text-slate-600 ml-1">${CHAPTER_TITLES[ch]}</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-semibold shrink-0">
+              <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">${u} Unseen</span>
+              <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600">${m} Muted</span>
+              <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700">${r} Review</span>
+            </div>
+          </div>
+        `;
+      }
+      panel.innerHTML = html;
+    }
+
+    function toggleChapterBreakdown() {
+      const panel = document.getElementById('chapterBreakdownPanel');
+      const icon = document.getElementById('iconChapterToggle');
+      const isHidden = panel.classList.contains('hidden');
+      if (isHidden) {
+        panel.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+      } else {
+        panel.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    /********************************************************************
+     * 5. QUIZ ROUND ENGINE ("START NEW" & "REVIEW")
+     ********************************************************************/
+    function switchView(viewName) {
+      document.getElementById('viewHome').classList.add('hidden');
+      document.getElementById('viewQuiz').classList.add('hidden');
+      document.getElementById('viewSummary').classList.add('hidden');
+
+      const btnHeaderHome = document.getElementById('btnHeaderHome');
+      if (viewName === 'home') {
+        document.getElementById('viewHome').classList.remove('hidden');
+        btnHeaderHome.classList.add('hidden');
+        btnHeaderHome.classList.remove('inline-flex');
+        updateHomeUI();
+      } else if (viewName === 'quiz') {
+        document.getElementById('viewQuiz').classList.remove('hidden');
+        btnHeaderHome.classList.remove('hidden');
+        btnHeaderHome.classList.add('inline-flex');
+      } else if (viewName === 'summary') {
+        document.getElementById('viewSummary').classList.remove('hidden');
+        btnHeaderHome.classList.remove('hidden');
+        btnHeaderHome.classList.add('inline-flex');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function startRound(mode) {
+      if (mode === 'review' && appState.reviewBankIds.length === 0) {
+        return;
+      }
+      const totalMainBank = appState.unseenBankIds.length + appState.mutedBankIds.length;
+      if (mode === 'new' && totalMainBank === 0) {
+        return;
+      }
+
+      activeRound = {
+        mode,
+        maxQuestions: mode === 'new'
+          ? Math.min(10, totalMainBank)
+          : Math.min(10, appState.reviewBankIds.length),
+        questionsAnswered: 0,
+        correctCount: 0,
+        currentQuestion: null,
+        answeredCurrent: false,
+        addedToReviewManually: false,
+        cycleResetTriggered: false,
+        roundReviewPoolIds: mode === 'review' ? [...appState.reviewBankIds] : [],
+        history: []
+      };
+
+      switchView('quiz');
+      loadNextQuestionInRound();
+    }
+
+    function drawQuestionForRound() {
+      activeRound.cycleResetTriggered = false;
+
+      if (activeRound.mode === 'new') {
+        // Check if unseenBankIds is empty; if so, reset cycle from mutedBankIds
+        if (appState.unseenBankIds.length === 0) {
+          if (appState.mutedBankIds.length > 0) {
+            appState.unseenBankIds = [...appState.mutedBankIds];
+            appState.mutedBankIds = [];
+            saveAppState();
+            activeRound.cycleResetTriggered = true;
+          } else {
+            return null; // Entire main bank is empty (all 165 are in review bank)
+          }
+        }
+        const randIdx = Math.floor(Math.random() * appState.unseenBankIds.length);
+        const qId = appState.unseenBankIds[randIdx];
+        return QUESTIONS_BY_ID[qId];
+      } else {
+        // Review Mode: draw from roundReviewPoolIds that are still in reviewBankIds
+        activeRound.roundReviewPoolIds = activeRound.roundReviewPoolIds.filter(id =>
+          appState.reviewBankIds.includes(id)
+        );
+        if (activeRound.roundReviewPoolIds.length === 0) {
+          return null;
+        }
+        const randIdx = Math.floor(Math.random() * activeRound.roundReviewPoolIds.length);
+        const qId = activeRound.roundReviewPoolIds.splice(randIdx, 1)[0];
+        return QUESTIONS_BY_ID[qId];
+      }
+    }
+
+    function loadNextQuestionInRound() {
+      // Check if round has reached its question limit
+      if (activeRound.questionsAnswered >= activeRound.maxQuestions) {
+        finishRound(false);
+        return;
+      }
+
+      const nextQ = drawQuestionForRound();
+      if (!nextQ) {
+        // Ran out of questions in bank
+        finishRound(true);
+        return;
+      }
+
+      activeRound.currentQuestion = nextQ;
+      activeRound.answeredCurrent = false;
+      activeRound.addedToReviewManually = false;
+
+      renderCurrentQuestion();
+    }
+
+    function renderCurrentQuestion() {
+      const q = activeRound.currentQuestion;
+      const stepNum = activeRound.questionsAnswered + 1;
+
+      // Mode badge
+      const modeBadge = document.getElementById('quizModeBadge');
+      const roundBar = document.getElementById('quizRoundBar');
+      if (activeRound.mode === 'new') {
+        modeBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700';
+        modeBadge.innerHTML = '<i class="ph-bold ph-sparkle"></i> Start New';
+        roundBar.className = 'h-full bg-indigo-600 rounded-full transition-all duration-300';
+      } else {
+        modeBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700';
+        modeBadge.innerHTML = '<i class="ph-bold ph-bookmarks"></i> Review Mode';
+        roundBar.className = 'h-full bg-amber-500 rounded-full transition-all duration-300';
+      }
+
+      // Cycle alert badge
+      const cycleAlert = document.getElementById('quizCycleAlert');
+      if (activeRound.cycleResetTriggered) {
+        cycleAlert.classList.remove('hidden');
+      } else {
+        cycleAlert.classList.add('hidden');
+      }
+
+      // Step counter & bar
+      document.getElementById('quizStepCurrent').textContent = stepNum;
+      document.getElementById('quizStepTotal').textContent = activeRound.maxQuestions;
+      const barPct = Math.round((stepNum / activeRound.maxQuestions) * 100);
+      roundBar.style.width = `${barPct}%`;
+
+      // Chapter & Question Info
+      document.getElementById('qChapterNum').textContent = `Chapter ${q.chapterNumber}`;
+      document.getElementById('qChapterTitle').textContent = q.chapterTitle;
+      document.getElementById('qOriginalNum').textContent = `Question ${q.questionNumber}`;
+      document.getElementById('qPromptText').textContent = q.prompt;
+
+      // Render Option Buttons
+      const optionsContainer = document.getElementById('qOptionsContainer');
+      const letters = ['A', 'B', 'C', 'D', 'E'];
+      optionsContainer.innerHTML = q.options.map((optText, idx) => `
+        <button
+          type="button"
+          onclick="handleSelectOption(${idx})"
+          id="optBtn_${idx}"
+          class="option-btn w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 bg-white flex items-start gap-3.5 group"
+        >
+          <span id="optBadge_${idx}" class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-indigo-100 group-hover:text-indigo-700 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 transition-colors">
+            ${letters[idx] || idx + 1}
+          </span>
+          <span class="text-sm sm:text-base font-medium text-slate-800 leading-snug flex-1">
+            ${escapeHtml(optText)}
+          </span>
+        </button>
+      `).join('');
+
+      // Hide feedback and bottom action bar until user answers
+      document.getElementById('qFeedbackBanner').classList.add('hidden');
+      document.getElementById('qActionBar').classList.add('hidden');
+    }
+
+    function handleSelectOption(selectedIndex) {
+      if (activeRound.answeredCurrent) return; // Prevent second chance
+      activeRound.answeredCurrent = true;
+      activeRound.questionsAnswered++;
+
+      const q = activeRound.currentQuestion;
+      const isCorrect = selectedIndex === q.correctIndex;
+      if (isCorrect) {
+        activeRound.correctCount++;
+      }
+
+      // Style all option buttons & lock them
+      q.options.forEach((_, idx) => {
+        const btn = document.getElementById(`optBtn_${idx}`);
+        const badge = document.getElementById(`optBadge_${idx}`);
+        btn.disabled = true;
+        btn.classList.remove('hover:border-indigo-400', 'hover:bg-indigo-50/40');
+
+        if (idx === q.correctIndex) {
+          btn.className = 'option-btn w-full text-left p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50/70 flex items-start gap-3.5';
+          badge.className = 'w-7 h-7 rounded-lg bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5';
+          badge.innerHTML = '<i class="ph-bold ph-check"></i>';
+        } else if (idx === selectedIndex && !isCorrect) {
+          btn.className = 'option-btn w-full text-left p-4 rounded-xl border-2 border-rose-500 bg-rose-50/70 flex items-start gap-3.5';
+          badge.className = 'w-7 h-7 rounded-lg bg-rose-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5';
+          badge.innerHTML = '<i class="ph-bold ph-x"></i>';
+        } else {
+          btn.className = 'option-btn w-full text-left p-4 rounded-xl border border-slate-200 bg-slate-50/60 opacity-60 flex items-start gap-3.5';
+        }
+      });
+
+      // Apply strict Bank Transfer Rules
+      let bankStatusNote = '';
+      if (activeRound.mode === 'new') {
+        // Remove from unseenBankIds
+        appState.unseenBankIds = appState.unseenBankIds.filter(id => id !== q.id);
+
+        if (isCorrect) {
+          // Move to mutedBankIds (completed in current cycle)
+          if (!appState.mutedBankIds.includes(q.id)) {
+            appState.mutedBankIds.push(q.id);
+          }
+          bankStatusNote = 'Muted for this cycle';
+        } else {
+          // Automatically move to reviewBankIds
+          if (!appState.reviewBankIds.includes(q.id)) {
+            appState.reviewBankIds.push(q.id);
+          }
+          bankStatusNote = 'Moved to Review Bank';
+        }
+      } else {
+        // Review Mode
+        if (isCorrect) {
+          // Remove from reviewBankIds and return to main Question Bank (mutedBankIds for future cycles)
+          appState.reviewBankIds = appState.reviewBankIds.filter(id => id !== q.id);
+          if (!appState.mutedBankIds.includes(q.id) && !appState.unseenBankIds.includes(q.id)) {
+            appState.mutedBankIds.push(q.id);
+          }
+          bankStatusNote = 'Removed from Review Bank (Returned to Question Bank)';
+        } else {
+          // Remains in reviewBankIds
+          bankStatusNote = 'Kept in Review Bank';
+        }
+      }
+
+      saveAppState();
+
+      // Record in round history
+      activeRound.history.push({
+        question: q,
+        selectedIndex,
+        isCorrect,
+        finalBankStatus: bankStatusNote
+      });
+
+      // Show Feedback Banner
+      const banner = document.getElementById('qFeedbackBanner');
+      const icon = document.getElementById('qFeedbackIcon');
+      const title = document.getElementById('qFeedbackTitle');
+      const sub = document.getElementById('qFeedbackSub');
+
+      banner.classList.remove('hidden');
+      if (isCorrect) {
+        banner.className = 'rounded-xl p-4 border border-emerald-200 bg-emerald-50 text-emerald-900 animate-fade-in';
+        icon.innerHTML = '<i class="ph-fill ph-check-circle text-emerald-600 text-2xl"></i>';
+        title.textContent = 'Correct!';
+        sub.textContent = activeRound.mode === 'new'
+          ? 'Great job! This question is now muted until you finish the current Question Bank cycle. Want to review it again sooner? Click "Add to Bank" below.'
+          : 'Well done! This question has been removed from your Review Bank and returned to the main Question Bank for future cycles.';
+      } else {
+        banner.className = 'rounded-xl p-4 border border-rose-200 bg-rose-50 text-rose-900 animate-fade-in';
+        icon.innerHTML = '<i class="ph-fill ph-x-circle text-rose-600 text-2xl"></i>';
+        title.textContent = 'Incorrect';
+        sub.innerHTML = `Correct Answer: <strong class="underline decoration-rose-300">${escapeHtml(q.correctAnswerText)}</strong>`;
+      }
+
+      // Configure Bottom Action Bar (Next + Add to Bank if applicable)
+      renderActionBar(isCorrect);
+    }
+
+    function renderActionBar(isCorrect) {
+      const actionBar = document.getElementById('qActionBar');
+      const bankSlot = document.getElementById('qBankActionSlot');
+      const btnNextLabel = document.getElementById('btnNextLabel');
+
+      actionBar.classList.remove('hidden');
+
+      // Update Next button label if this is the final question of the round
+      const isLastInRound =
+        activeRound.questionsAnswered >= activeRound.maxQuestions ||
+        (activeRound.mode === 'review' && activeRound.roundReviewPoolIds.length === 0);
+
+      btnNextLabel.textContent = isLastInRound ? 'Finish Round' : 'Next';
+
+      if (activeRound.mode === 'new') {
+        if (isCorrect) {
+          // Show "Add to Bank" button right next to "Next"
+          bankSlot.innerHTML = `
+            <button
+              id="btnAddToReviewBank"
+              type="button"
+              onclick="handleManualAddToBank()"
+              class="w-full sm:w-auto py-3 px-4 rounded-xl font-bold text-xs sm:text-sm border-2 border-amber-500 text-amber-700 bg-amber-50 hover:bg-amber-100 flex items-center justify-center gap-2 transition-colors"
+            >
+              <i class="ph-bold ph-bookmark-simple"></i>
+              <span>Add to Bank</span>
+            </button>
+          `;
+        } else {
+          bankSlot.innerHTML = `
+            <div class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-3.5 py-2.5 rounded-xl w-full sm:w-auto">
+              <i class="ph-fill ph-bookmarks text-amber-600 text-base"></i>
+              <span>Automatically moved to Review Bank</span>
+            </div>
+          `;
+        }
+      } else {
+        // Review Mode status pill
+        if (isCorrect) {
+          bankSlot.innerHTML = `
+            <div class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-xl w-full sm:w-auto">
+              <i class="ph-bold ph-arrow-u-up-left text-emerald-600 text-base"></i>
+              <span>Removed from Review Bank</span>
+            </div>
+          `;
+        } else {
+          bankSlot.innerHTML = `
+            <div class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-3.5 py-2.5 rounded-xl w-full sm:w-auto">
+              <i class="ph-fill ph-bookmarks text-amber-600 text-base"></i>
+              <span>Remains in Review Bank</span>
+            </div>
+          `;
+        }
+      }
+    }
+
+    // Moves a correctly-answered question in "Start New" from the Question Bank (mutedBankIds) to Review Bank
+    function handleManualAddToBank() {
+      if (activeRound.mode !== 'new' || activeRound.addedToReviewManually) return;
+      const q = activeRound.currentQuestion;
+      if (!q) return;
+
+      activeRound.addedToReviewManually = true;
+
+      // Remove from mutedBankIds and unseenBankIds (strict mutual exclusivity)
+      appState.mutedBankIds = appState.mutedBankIds.filter(id => id !== q.id);
+      appState.unseenBankIds = appState.unseenBankIds.filter(id => id !== q.id);
+
+      if (!appState.reviewBankIds.includes(q.id)) {
+        appState.reviewBankIds.push(q.id);
+      }
+      saveAppState();
+
+      // Update history item status
+      const lastHist = activeRound.history[activeRound.history.length - 1];
+      if (lastHist && lastHist.question.id === q.id) {
+        lastHist.finalBankStatus = 'Added to Review Bank manually';
+      }
+
+      // Update button UI
+      const btn = document.getElementById('btnAddToReviewBank');
+      if (btn) {
+        btn.disabled = true;
+        btn.className = 'w-full sm:w-auto py-3 px-4 rounded-xl font-bold text-xs sm:text-sm border border-emerald-300 text-emerald-800 bg-emerald-50 flex items-center justify-center gap-2 cursor-default';
+        btn.innerHTML = '<i class="ph-bold ph-check"></i><span>Added to Review Bank</span>';
+      }
+    }
+
+    function handleNextQuestion() {
+      if (!activeRound.answeredCurrent) return;
+      loadNextQuestionInRound();
+    }
+
+    /********************************************************************
+     * 6. END OF ROUND SUMMARY SCREEN
+     ********************************************************************/
+    function finishRound(endedEarlyDueToEmptyBank) {
+      // Auto-rollover cycle if unseen hit 0
+      if (appState.unseenBankIds.length === 0 && appState.mutedBankIds.length > 0) {
+        appState.unseenBankIds = [...appState.mutedBankIds];
+        appState.mutedBankIds = [];
+        saveAppState();
+      }
+
+      const totalAnswered = activeRound.questionsAnswered;
+      const correct = activeRound.correctCount;
+      const pct = totalAnswered > 0 ? Math.round((correct / totalAnswered) * 100) : 0;
+
+      document.getElementById('summaryModeLabel').textContent =
+        activeRound.mode === 'new' ? 'Start New — Round Complete' : 'Review Mode — Round Complete';
+      document.getElementById('summaryScorePercent').textContent = `${pct}%`;
+      document.getElementById('summaryScoreFraction').textContent =
+        `You answered ${correct} out of ${totalAnswered} question${totalAnswered === 1 ? '' : 's'} correctly`;
+
+      const earlyNote = document.getElementById('summaryEarlyEndNote');
+      if (activeRound.mode === 'review' && (endedEarlyDueToEmptyBank || totalAnswered < 10) && appState.reviewBankIds.length === 0) {
+        earlyNote.classList.remove('hidden');
+        earlyNote.textContent = 'All questions in your Review Bank have been cleared! The round ended complete.';
+      } else if (activeRound.mode === 'review' && totalAnswered < 10) {
+        earlyNote.classList.remove('hidden');
+        earlyNote.textContent = `Review Bank had ${totalAnswered} question${totalAnswered === 1 ? '' : 's'} available for this round.`;
+      } else {
+        earlyNote.classList.add('hidden');
+      }
+
+      // Live bank totals
+      document.getElementById('sumStatUnseen').textContent = appState.unseenBankIds.length;
+      document.getElementById('sumStatMuted').textContent = appState.mutedBankIds.length;
+      document.getElementById('sumStatReview').textContent = appState.reviewBankIds.length;
+
+      // Play Again button state
+      const btnAgain = document.getElementById('btnSummaryPlayAgain');
+      const btnAgainLabel = document.getElementById('btnSummaryPlayAgainLabel');
+      if (activeRound.mode === 'review') {
+        if (appState.reviewBankIds.length === 0) {
+          btnAgain.disabled = true;
+          btnAgain.classList.add('opacity-40', 'cursor-not-allowed');
+          btnAgainLabel.textContent = 'Review Bank Empty';
+        } else {
+          btnAgain.disabled = false;
+          btnAgain.classList.remove('opacity-40', 'cursor-not-allowed');
+          btnAgainLabel.textContent = `Review Again (${Math.min(10, appState.reviewBankIds.length)} Qs)`;
+        }
+      } else {
+        const availMain = appState.unseenBankIds.length + appState.mutedBankIds.length;
+        btnAgain.disabled = availMain === 0;
+        btnAgain.classList.toggle('opacity-40', availMain === 0);
+        btnAgainLabel.textContent = 'Start Next 10 Questions';
+      }
+
+      // Render History List
+      const listEl = document.getElementById('summaryHistoryList');
+      listEl.innerHTML = activeRound.history.map((item, idx) => {
+        const q = item.question;
+        const badgeClass = item.isCorrect
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          : 'bg-rose-50 text-rose-700 border-rose-200';
+        const statusIcon = item.isCorrect ? 'ph-check-circle text-emerald-600' : 'ph-x-circle text-rose-600';
+
+        return `
+          <div class="py-4 flex items-start gap-3.5">
+            <i class="ph-fill ${statusIcon} text-xl shrink-0 mt-0.5"></i>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
+                <span>#${idx + 1} &bull; Chapter ${q.chapterNumber}: ${escapeHtml(q.chapterTitle)} (Q${q.questionNumber})</span>
+                <span class="px-2 py-0.5 rounded border text-[11px] ${badgeClass}">${escapeHtml(item.finalBankStatus)}</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-900 mt-1">${escapeHtml(q.prompt)}</p>
+              <p class="text-xs text-slate-600 mt-1">
+                Correct Answer: <strong class="text-slate-900">${escapeHtml(q.correctAnswerText)}</strong>
+              </p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      switchView('summary');
+    }
+
+    function replaySameMode() {
+      startRound(activeRound.mode);
+    }
+
+    function returnHome() {
+      switchView('home');
+    }
+
+    function toggleGuideModal(show) {
+      const modal = document.getElementById('modalGuide');
+      if (show) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /********************************************************************
+     * 7. PWA MANIFEST & SERVICE WORKER REGISTRATION (SINGLE-FILE READY)
+     ********************************************************************/
+    function setupPWA() {
+      try {
+        const manifest = {
+          name: 'Multiple Choice PWA — I/O Psychology',
+          short_name: 'MC Study PWA',
+          description: '165 Multiple Choice Questions for Industrial-Organizational Psychology (Chapters 1–11)',
+          start_url: '.',
+          display: 'standalone',
+          background_color: '#f8fafc',
+          theme_color: '#4f46e5',
+          icons: [
+            {
+              src: 'https://placehold.co/192x192/4f46e5/ffffff.png?text=IO+PWA',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: 'https://placehold.co/512x512/4f46e5/ffffff.png?text=IO+PWA',
+              sizes: '512x512',
+              type: 'image/png'
+            }
+          ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+      } catch (e) {
+        console.warn('Manifest setup skipped:', e);
+      }
+    }
+
+    // Initialize App on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      setupPWA();
+      loadAppState();
+      updateHomeUI();
+    });
+  </script>
+</body>
+</html>
